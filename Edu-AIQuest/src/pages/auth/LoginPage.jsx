@@ -1,83 +1,59 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabase'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  
+  // 🚀 Store ke setters nikaal liye taake instantly update kar sakein
+  const { setUser, setProfile, setLoading: setAuthLoading } = useAuthStore()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleLogin = async () => {
-    setError('')
-    if (!email.includes('@')) return setError('Please enter a valid email.')
-    if (!password) return setError('Please enter your password.')
+const handleLogin = async () => {
+  setError('')
+  if (!email.includes('@')) return setError('Please enter a valid email.')
+  if (!password) return setError('Please enter your password.')
 
-    setLoading(true)
-    console.log('1. Login process started...')
+  setLoading(true)
 
-    try {
-      console.log('2. Calling signInWithPassword...')
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password })
-      
-      console.log('3. signInWithPassword returned! Data:', data, 'Error:', loginError)
-      if (loginError) throw loginError
+  try {
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password })
+    if (loginError) throw loginError
 
-      console.log('4. Fetching user profile from database...')
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .maybeSingle()
+    // Ab ye line nahi atkegi kyunke deadlock khatam ho chuka hai!
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .maybeSingle()
 
-      console.log('5. Profile fetch returned! Profile:', profile, 'Error:', profileError)
-
-      if (profileError || !profile || !profile.date_of_birth) {
-        console.log('6a. Profile not found or incomplete, redirecting to setup...')
-        navigate('/profile-setup')
-        return
-      }
-
-      const age = calcAge(profile.date_of_birth)
-      console.log('6b. Age calculated:', age)
-
-      if (age >= 16) {
-        console.log('7. Redirecting to Pro Dashboard')
-        navigate('/pro/dashboard')
-      } else if (age >= 10) {
-        console.log('7. Redirecting to Kids Dashboard')
-        navigate('/kids/dashboard')
-      } else {
-        console.log('7. Redirecting to Profile Setup (Age issue)')
-        navigate('/profile-setup')
-      }
-
-    } catch (err) {
-      console.error('❌ CATCH BLOCK TRIGGERED:', err)
-      if (err.message.includes('Invalid login credentials')) {
-        setError('Incorrect email or password. Please try again.')
-      } else {
-        setError(err.message || 'Login failed. Please try again.')
-      }
-    } finally {
-      console.log('8. Finally block running. Setting loading to false.')
-      setLoading(false)
-    }
-  }
-
-  const calcAge = (dob) => {
-    const today = new Date()
-    const birth = new Date(dob)
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-    return age
-  }
-
+    // Direct fast navigation
+    if (!profileData || !profileData.date_of_birth) {
+      window.location.replace('/profile-setup')
+    } else {
+      const age = new Date().getFullYear() - new Date(profileData.date_of_birth).getFullYear()
+      const isKids = age < 16
+      window.location.replace(isKids ? '/kids/dashboard' : '/pro/dashboard')
+    }
+    
+  } catch (err) {
+    console.error("Login Error:", err)
+    if (err.message.includes('Invalid login credentials')) {
+      setError('Incorrect email or password. Please try again.')
+    } else {
+      setError(err.message || 'Login failed. Please try again.')
+    }
+    setLoading(false) 
+  }
+}
   return (
     <div style={styles.wrapper}>
       <style>{fonts}</style>
@@ -149,7 +125,7 @@ export default function LoginPage() {
           <Link to="/register" style={{ color: '#4F8EF7', fontWeight: 700, textDecoration: 'none' }}>Sign up</Link>
         </p>
       </motion.div>
-
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }

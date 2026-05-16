@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom' // 🚀 navigate aur Navigate hata diya hai
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabase'
+import { useAuthStore } from '../../store/authStore'
 import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
-
+import { useNavigate } from 'react-router-dom'
 export default function RegisterPage() {
-  const navigate = useNavigate()
+  const { setUser, setProfile } = useAuthStore() 
+  
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -20,7 +22,8 @@ export default function RegisterPage() {
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
-  // ── Age Calculator ─────────────────────────────
+
+
   const calcAge = (dob) => {
     const today = new Date()
     const birth = new Date(dob)
@@ -30,7 +33,6 @@ export default function RegisterPage() {
     return age
   }
 
-  // ── Step 1 Validation ──────────────────────────
   const handleStep1 = () => {
     setError('')
     if (!form.fullName.trim()) return setError('Please enter your full name.')
@@ -39,83 +41,69 @@ export default function RegisterPage() {
     setStep(2)
   }
 
-  // ── Step 2 Submit → Supabase ───────────────────
-  // ── Step 2 Submit → Supabase ───────────────────
-  const handleRegister = async () => {
-    setError('')
-    if (!form.dateOfBirth) return setError('Date of birth is required.')
-    const age = calcAge(form.dateOfBirth)
-    if (age < 10) return setError('You must be at least 10 years old to join.')
-    if (age > 100) return setError('Please enter a valid date of birth.')
+  const navigate = useNavigate()
 
-    setLoading(true)
-    console.log('Calling signUp...')
+const handleRegister = async () => {
+    console.log('handleRegister called')
+  console.log('form data:', form)
+  setError('')
+  if (!form.dateOfBirth) return setError('Date of birth is required.')
+  const age = calcAge(form.dateOfBirth)
+  if (age < 10) return setError('You must be at least 10 years old to join.')
+  if (age > 100) return setError('Please enter a valid date of birth.')
 
-    try {
-      // 🚀 CRITICAL FIX: Logout first to clear any stuck local browser sessions
-      // Iske baghair same browser mein doosra account banate waqt app freeze ho jati hai.
-      await supabase.auth.signOut()
-
-      // 1. Sign up the user
-      const { data, error } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            full_name: form.fullName,
-            date_of_birth: form.dateOfBirth,
-          }
+  setLoading(true)
+console.log('calling signUp...') // ← ADD
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          full_name: form.fullName,
+          date_of_birth: form.dateOfBirth,
         }
-      })
-
-      if (error) throw error
-      if (!data.user) throw new Error('No user returned.')
-
-      // 2. Check if Supabase requires email confirmation
-      if (data.session === null) {
-        // Session is null because the user needs to click the link in their email
-        setError('Account created! Please check your email to verify your account before logging in.')
-        // We return here so it doesn't navigate to /profile-setup yet
-        return 
       }
+    })
+      console.log('signUp response:', data, error) // ← ADD
 
-      // 3. If session exists (Email Confirmation is OFF), they are auto-logged in!
-      console.log('Auto-login successful, navigating...')
-      navigate('/profile-setup')
-
-    } catch (err) {
-      console.error('Error:', err.message)
-      // Provide a friendlier message if they try to sign up twice
-      if (err.message.includes('already registered')) {
-        setError('This email is already registered. Try logging in.')
-      } else {
-        setError(err.message || 'Something went wrong.')
-      }
-    } finally {
-      setLoading(false)
+    if (error) throw error
+    if (!data.session) {
+      setError('Check your email for verification.')
+      return
     }
+
+    // ✅ FIX: Store manually set karo PEHLE, phir navigate karo
+    // Isse ProtectedRoute ko loading wait nahi karni padegi
+    setUser(data.session.user)
+    setProfile(null) // profile abhi nahi bani
+    
+    navigate('/profile-setup', { replace: true })
+
+  } catch (err) {
+    if (err.message.includes('already registered')) {
+      setError('Email already registered.')
+    } else {
+      setError(err.message)
+    }
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div style={styles.wrapper}>
       <style>{fonts}</style>
-
-      {/* Background */}
       <div style={styles.bgGlow} />
       <div style={styles.bgGrid} />
 
-      {/* Card */}
-      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-        style={styles.card}>
-
-        {/* Logo */}
-        <div style={styles.logo} onClick={() => navigate('/')}>
+      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={styles.card}>
+        <div style={styles.logo} onClick={() => window.location.href = '/'}>
           <span style={{ color: '#4F8EF7' }}>Edu</span>
           <span style={{ color: '#FF6B9D' }}>AI</span>
           <span style={{ color: '#09090B' }}>Quest</span>
         </div>
 
-        {/* Step indicator */}
         <div style={styles.stepRow}>
           {[1, 2].map(n => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -129,8 +117,6 @@ export default function RegisterPage() {
         </div>
 
         <AnimatePresence mode="wait">
-
-          {/* ── STEP 1 ── */}
           {step === 1 && (
             <motion.div key="step1" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}>
               <h2 style={styles.title}>Create account</h2>
@@ -148,9 +134,7 @@ export default function RegisterPage() {
                 </button>
               </div>
 
-              <AnimatePresence>
-                {error && <ErrorMsg msg={error} />}
-              </AnimatePresence>
+              <AnimatePresence>{error && <ErrorMsg msg={error} />}</AnimatePresence>
 
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                 onClick={handleStep1} style={styles.primaryBtn}>
@@ -159,20 +143,16 @@ export default function RegisterPage() {
             </motion.div>
           )}
 
-          {/* ── STEP 2 ── */}
           {step === 2 && (
             <motion.div key="step2" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}>
               <h2 style={styles.title}>When were you born?</h2>
               <p style={styles.sub}>
-                This determines your learning mode.{' '}
-                <span style={{ color: '#FF6B9D', fontWeight: 700 }}>Age 10–15</span> → Kids Mode &nbsp;|&nbsp;
-                <span style={{ color: '#4F8EF7', fontWeight: 700 }}>Age 16+</span> → Pro Mode
+                This determines your learning mode. <span style={{ color: '#FF6B9D', fontWeight: 700 }}>Age 10–15</span> → Kids | <span style={{ color: '#4F8EF7', fontWeight: 700 }}>Age 16+</span> → Pro
               </p>
 
               <Input label="Date of Birth" placeholder="" value={form.dateOfBirth}
                 onChange={v => set('dateOfBirth', v)} type="date" />
 
-              {/* Age preview */}
               {form.dateOfBirth && (() => {
                 const age = calcAge(form.dateOfBirth)
                 const isKids = age >= 10 && age <= 15
@@ -181,16 +161,12 @@ export default function RegisterPage() {
                   <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                     style={{ background: isKids ? '#FDF2F8' : isPro ? '#EFF6FF' : '#FEF2F2', border: `1px solid ${isKids ? '#FBCFE8' : isPro ? '#BFDBFE' : '#FECACA'}`, borderRadius: 12, padding: '12px 16px', fontSize: 13, fontWeight: 700, color: isKids ? '#DB2777' : isPro ? '#1D4ED8' : '#DC2626', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                     {isPro ? '💼' : isKids ? '🎮' : '⚠️'}
-                    {isPro ? `Age ${age} — You'll enter Pro Career Mode` :
-                      isKids ? `Age ${age} — You'll enter Kids Adventure Mode` :
-                        `Age ${age} — Must be between 10 and 100`}
+                    {isPro ? `Age ${age} — You'll enter Pro Career Mode` : isKids ? `Age ${age} — You'll enter Kids Adventure Mode` : `Age ${age} — Must be between 10 and 100`}
                   </motion.div>
                 )
               })()}
 
-              <AnimatePresence>
-                {error && <ErrorMsg msg={error} />}
-              </AnimatePresence>
+              <AnimatePresence>{error && <ErrorMsg msg={error} />}</AnimatePresence>
 
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                 onClick={handleRegister} disabled={loading} style={{ ...styles.primaryBtn, opacity: loading ? 0.7 : 1 }}>
@@ -200,21 +176,17 @@ export default function RegisterPage() {
               <button onClick={() => setStep(1)} style={styles.backBtn}>← Back</button>
             </motion.div>
           )}
-
         </AnimatePresence>
 
         <p style={styles.switchText}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: '#4F8EF7', fontWeight: 700, textDecoration: 'none' }}>Log in</Link>
+          Already have an account? <Link to="/login" style={{ color: '#4F8EF7', fontWeight: 700, textDecoration: 'none' }}>Log in</Link>
         </p>
       </motion.div>
-
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }
 
-// ── Reusable Input ─────────────────────────────────────────────────────────
 function Input({ label, value, onChange, type, placeholder }) {
   return (
     <div style={{ marginBottom: 16 }}>
@@ -228,7 +200,6 @@ function Input({ label, value, onChange, type, placeholder }) {
   )
 }
 
-// ── Error Message ──────────────────────────────────────────────────────────
 function ErrorMsg({ msg }) {
   return (
     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -238,7 +209,6 @@ function ErrorMsg({ msg }) {
   )
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}`
 
 const styles = {

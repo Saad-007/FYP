@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabase'
+import { useAuthStore } from '../../store/authStore'
 import { 
   Loader2, Check, Bot, Cpu, Terminal, Puzzle, Settings, Palette, 
   Mic, Calculator, Code2, BrainCircuit, BarChart3, Network, 
   MessageSquare, Eye, Database, Blocks, User, ArrowRight, Sparkles 
 } from 'lucide-react'
 
-// ── Icons replaced emojis for a premium aesthetic ─────────────────────────
 const KIDS_TOPICS = [
   { id: 'what_is_ai', label: 'What is AI?', icon: <Bot size={20} /> },
   { id: 'robots', label: 'Robots & Logic', icon: <Cpu size={20} /> },
@@ -32,6 +32,7 @@ const PRO_TOPICS = [
 ]
 
 const calcAge = (dob) => {
+  if (!dob) return 0
   const today = new Date()
   const birth = new Date(dob)
   let age = today.getFullYear() - birth.getFullYear()
@@ -40,7 +41,6 @@ const calcAge = (dob) => {
   return age
 }
 
-// ── Background Noise Texture ─────────────────────────────────────────────
 const NoiseBg = () => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 0, opacity: 0.35, pointerEvents: 'none', mixBlendMode: 'overlay',
     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
@@ -49,88 +49,74 @@ const NoiseBg = () => (
 
 export default function ProfileSetup() {
   const navigate = useNavigate()
+  
+  // 🚀 Sirf 1 Loading State (Global)
+  const { user, profile, loading: authLoading, setProfile } = useAuthStore()
+
   const [username, setUsername] = useState('')
   const [selectedTopics, setSelectedTopics] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
-  const [userAge, setUserAge] = useState(null)
-  const [topicsToShow, setTopicsToShow] = useState([])
-  const [loadingProfile, setLoadingProfile] = useState(true)
-  const [isKids, setIsKids] = useState(false)
 
-  // Fetch Age Logic (Unchanged)
+  // 🚀 MAGIC: Derived State (No useEffect needed for age!)
+  // Ye khud ba khud calculate hoga jaise hi user ka data aayega
+  const dob = user?.user_metadata?.date_of_birth || profile?.date_of_birth
+  const userAge = dob ? calcAge(dob) : 0
+  const isKids = userAge >= 10 && userAge <= 15
+  const topicsToShow = isKids ? KIDS_TOPICS : PRO_TOPICS
+
+  // Security Check: Agar auth load ho gaya aur user null hai, to wapis Login bhej do
   useEffect(() => {
-    const fetchAge = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.user) return navigate('/login')
-
-        const dobFromMeta = session.user.user_metadata?.date_of_birth
-        
-        if (dobFromMeta) {
-          const age = calcAge(dobFromMeta)
-          setUserAge(age)
-          setIsKids(age >= 10 && age <= 15)
-          setTopicsToShow(age >= 10 && age <= 15 ? KIDS_TOPICS : PRO_TOPICS)
-          setLoadingProfile(false)
-          return
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('date_of_birth')
-          .eq('id', session.user.id)
-          .single()
-
-        if (!profile?.date_of_birth) return navigate('/login')
-
-        const age = calcAge(profile.date_of_birth)
-        setUserAge(age)
-        setIsKids(age >= 10 && age <= 15)
-        setTopicsToShow(age >= 10 && age <= 15 ? KIDS_TOPICS : PRO_TOPICS)
-
-      } catch (e) {
-        console.error('ProfileSetup error:', e)
-        navigate('/login')
-      } finally {
-        setLoadingProfile(false)
-      }
+    if (!authLoading && !user) {
+      navigate('/login', { replace: true })
     }
-    fetchAge()
-  }, [navigate])
+  }, [authLoading, user, navigate])
 
   const toggleTopic = (id) => {
     setSelectedTopics(p => p.includes(id) ? p.filter(t => t !== id) : [...p, id])
   }
 
-  const handleSave = async () => {
-    setError('')
-    if (username.trim().length < 3) return setError('Username must be at least 3 characters.')
-    if (selectedTopics.length === 0) return setError('Please select at least one topic.')
+const handleSave = async () => {
+    setError('')
+    if (username.trim().length < 3) return setError('Username must be at least 3 characters.')
+    if (selectedTopics.length === 0) return setError('Please select at least one topic.')
 
-    setLoading(true)
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) throw new Error('Not authenticated')
+    setIsSaving(true)
+    try {
+      // 💡 Pro Tip: Agar naya user hai aur profile row abhi exist nahi karti, 
+      // toh .upsert() use karna behtar hai .update() ki jagah.
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({ 
+          id: user.id, // ID dena zaroori hai upsert ke liye
+          username: username.trim(), 
+          topics: selectedTopics,
+          date_of_birth: dob // date of birth bhi save karlein DB me
+        }) 
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ username: username.trim(), topics: selectedTopics })
-        .eq('id', session.user.id)
+      if (updateError) {
+        if (updateError.message.includes('unique')) throw new Error('Username already taken. Please choose another.')
+        throw updateError
+      }
+      
+      // 🚀 FIX 2: Navigate karne se PEHLE local store update karein
+      setProfile({
+        ...profile,
+        id: user.id,
+        username: username.trim(),
+        topics: selectedTopics,
+        date_of_birth: dob
+      })
 
-      if (updateError) {
-        if (updateError.message.includes('unique')) throw new Error('Username already taken. Please choose another.')
-        throw updateError
-      }
-      navigate(isKids ? '/kids/dashboard' : '/pro/dashboard')
-    } catch (err) {
-      setError(err.message || 'Failed to save profile.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loadingProfile) {
+      navigate(isKids ? '/kids/dashboard' : '/pro/dashboard')
+    } catch (err) {
+      setError(err.message || 'Failed to save profile.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+  // 🚀 MAIN RENDER BLOCK: Agar App.jsx load kar raha hai, toh loader dikhao
+  if (authLoading) {
     return (
       <div style={{ minHeight: '100vh', background: '#09090B', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#3B82F6' }} />
@@ -140,7 +126,10 @@ export default function ProfileSetup() {
     )
   }
 
-  // Theme Variables based on Mode
+  // Agar user ghaib hai, to empty screen dikhao jab tak redirect na ho jaye
+  if (!user) return null
+
+  // Theme Variables
   const bgMain = isKids ? '#FAFAFA' : '#000000'
   const cardBg = isKids ? '#ffffff' : '#09090B'
   const textPrimary = isKids ? '#09090B' : '#ffffff'
@@ -159,13 +148,11 @@ export default function ProfileSetup() {
         input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px ${inputBg} inset !important; -webkit-text-fill-color: ${textPrimary} !important; }
       `}</style>
 
-      {/* Ambient Glow */}
       <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '80vw', maxWidth: 800, height: 500, background: isKids ? 'radial-gradient(ellipse,rgba(236,72,153,0.08) 0%,transparent 60%)' : 'radial-gradient(ellipse,rgba(59,130,246,0.1) 0%,transparent 60%)', pointerEvents: 'none', zIndex: 0 }} />
 
       <motion.div initial={{ y: 30, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: 'easeOut' }}
         style={{ position: 'relative', zIndex: 10, background: cardBg, border: `1px solid ${borderCol}`, borderRadius: 32, padding: '48px 40px', width: '100%', maxWidth: 580, boxShadow: isKids ? '0 25px 50px rgba(0,0,0,0.04)' : '0 30px 60px rgba(0,0,0,0.4)' }}>
 
-        {/* ── HEADER ── */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}
             style={{ width: 64, height: 64, borderRadius: 20, background: isKids ? '#FDF2F8' : '#1E1B4B', color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: `0 8px 24px ${isKids ? 'rgba(236,72,153,0.15)' : 'rgba(59,130,246,0.15)'}` }}>
@@ -182,7 +169,6 @@ export default function ProfileSetup() {
           </div>
         </div>
 
-        {/* ── USERNAME INPUT ── */}
         <div style={{ marginBottom: 32 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: textPrimary, marginBottom: 10 }}>
             <User size={16} color={accentColor} /> {isKids ? 'Choose an Avatar Name' : 'Developer Handle'}
@@ -200,7 +186,6 @@ export default function ProfileSetup() {
           </div>
         </div>
 
-        {/* ── TOPICS GRID (Bento Style) ── */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <label style={{ fontSize: 14, fontWeight: 700, color: textPrimary }}>
@@ -237,7 +222,6 @@ export default function ProfileSetup() {
           </div>
         </div>
 
-        {/* ── ERROR ALERT ── */}
         <AnimatePresence>
           {error && (
             <motion.div initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: 'auto', marginBottom: 20 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -249,19 +233,18 @@ export default function ProfileSetup() {
           )}
         </AnimatePresence>
 
-        {/* ── SUBMIT BUTTON ── */}
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-          onClick={handleSave} disabled={loading}
+          onClick={handleSave} disabled={isSaving}
           style={{ 
             width: '100%', padding: '18px', 
             background: isKids ? '#EC4899' : '#ffffff', 
             color: isKids ? '#ffffff' : '#09090B', 
             border: 'none', borderRadius: 16, fontSize: 16, fontWeight: 800, fontFamily: "'Nunito',sans-serif", 
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, 
-            opacity: loading ? 0.75 : 1, 
+            opacity: isSaving ? 0.75 : 1, 
             boxShadow: isKids ? '0 10px 25px rgba(236,72,153,0.3)' : '0 10px 25px rgba(255,255,255,0.1)' 
           }}>
-          {loading 
+          {isSaving 
             ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</> 
             : <>{isKids ? 'Start Adventure' : 'Launch Workspace'} <ArrowRight size={18} /></>}
         </motion.button>

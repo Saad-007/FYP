@@ -1,15 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = 'https://kecchipeimysyhjylnqi.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlY2NoaXBlaW15c3loanlsbnFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODYzMDcsImV4cCI6MjA5MzY2MjMwN30.vi97UNFUEXxnSREyrBpCE0TIo_py2c2dXmbVXPG4FtY'
 
-// 🚀 CRITICAL FIX: Hum custom 'storageKey' de rahay hain taake 
-// browser ka purana atka hua (corrupted) data ignore ho jaye.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storageKey: 'edu-ai-quest-auth-token', // Ye naya naam hai
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-})
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
