@@ -1,6 +1,6 @@
 /**
  * LandingPage.jsx — EduAIQuest v2 "Apex Edition"
- * World-class premium SaaS landing page
+ * World-class premium SaaS landing page (100% Responsive with Original Desktop Logo)
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react'
@@ -57,13 +57,6 @@ const PLATFORM_STATS = [
   { val: '∞', label: 'Learning Paths', icon: GitBranch, color: '#10B981' },
 ]
 
-// ─────────────────────────────────────────────────────────────────────────────
-// UTILITY: Stagger container
-// ─────────────────────────────────────────────────────────────────────────────
-const staggerContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.09 } }
-}
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
   show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }
@@ -106,7 +99,6 @@ function MagneticButton({ children, style, onClick, className }) {
 // ─────────────────────────────────────────────────────────────────────────────
 const AuroraBackground = () => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', background: '#FAFAFA' }}>
-    {/* Fine grid */}
     <div style={{
       position: 'absolute', inset: 0,
       backgroundImage: 'linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px)',
@@ -114,7 +106,6 @@ const AuroraBackground = () => (
       maskImage: 'linear-gradient(to bottom, black 0%, transparent 85%)',
       WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 85%)'
     }} />
-    {/* Aurora blobs */}
     <motion.div
       animate={{ x: ['-8%', '8%', '-8%'], y: ['-8%', '8%', '-8%'], scale: [1, 1.1, 1] }}
       transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
@@ -138,9 +129,6 @@ const AuroraBackground = () => (
   </div>
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FLOATING PARTICLES
-// ─────────────────────────────────────────────────────────────────────────────
 function Particles({ side }) {
   const isKids = side === 'kids'
   const colors = isKids
@@ -165,9 +153,6 @@ function Particles({ side }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ANIMATED XP BAR (Kids)
-// ─────────────────────────────────────────────────────────────────────────────
 function XPBar({ label, value, max, color }) {
   return (
     <div style={{ marginBottom: 10 }}>
@@ -188,16 +173,13 @@ function XPBar({ label, value, max, color }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RADIAL DONUT CHART (Kids level progress)
-// ─────────────────────────────────────────────────────────────────────────────
 function DonutChart({ percent, color, label }) {
   const r = 34
   const circ = 2 * Math.PI * r
   const dash = (percent / 100) * circ
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <svg width="88" height="88" viewBox="0 0 88 88">
+    <div className="donut-chart-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+      <svg width="88" height="88" viewBox="0 0 88 88" className="donut-svg">
         <circle cx="44" cy="44" r={r} fill="none" stroke="#F4F4F5" strokeWidth="7" />
         <motion.circle
           cx="44" cy="44" r={r} fill="none"
@@ -217,9 +199,6 @@ function DonutChart({ percent, color, label }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// WEEKLY XP BAR CHART (Pro)
-// ─────────────────────────────────────────────────────────────────────────────
 function WeeklyXPChart() {
   const data = [
     { day: 'Mon', xp: 120 }, { day: 'Tue', xp: 280 }, { day: 'Wed', xp: 195 },
@@ -258,9 +237,6 @@ function WeeklyXPChart() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// KIDS MODE PREVIEW CARD
-// ─────────────────────────────────────────────────────────────────────────────
 function ChildModePreview() {
   const [activeTask, setActiveTask] = useState(0)
   useEffect(() => {
@@ -271,11 +247,11 @@ function ChildModePreview() {
 
   return (
     <motion.div
+      className="preview-card"
       initial={{ y: 24, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }}
       style={{ position: 'relative', zIndex: 2, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(24px)', border: '1px solid rgba(255,255,255,0.9)', borderRadius: 24, padding: 22, boxShadow: '0 20px 40px rgba(0,0,0,0.06)' }}
     >
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', gap: 5 }}>
           {['#FCA5A5','#FDE047','#86EFAC'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />)}
         </div>
@@ -284,8 +260,7 @@ function ChildModePreview() {
         </div>
       </div>
 
-      {/* Feature grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 9, marginBottom: 16 }}>
         {KIDS_FEATURES.map(f => (
           <motion.div key={f.label} whileHover={{ scale: 1.04, y: -2 }}
             style={{ background: f.bg, border: `1.5px solid ${f.border}`, borderRadius: 16, padding: '13px', display: 'flex', flexDirection: 'column', gap: 6, cursor: 'default' }}>
@@ -295,14 +270,12 @@ function ChildModePreview() {
         ))}
       </div>
 
-      {/* Progress donuts */}
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: 16, background: '#FAFAFA', borderRadius: 16, padding: '12px 8px', border: '1px solid #F4F4F5' }}>
+      <div className="donut-row" style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', marginBottom: 16, background: '#FAFAFA', borderRadius: 16, padding: '12px 8px', border: '1px solid #F4F4F5' }}>
         <DonutChart percent={72} color="#3B82F6" label="Zones" />
         <DonutChart percent={58} color="#EC4899" label="Badges" />
         <DonutChart percent={91} color="#10B981" label="Streak" />
       </div>
 
-      {/* Current quest */}
       <div style={{ fontSize: 10, fontWeight: 900, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 7 }}>Current Quest</div>
       <AnimatePresence mode="wait">
         <motion.div key={activeTask}
@@ -311,15 +284,13 @@ function ChildModePreview() {
           style={{ display: 'flex', alignItems: 'center', gap: 11, background: QUEST_TASKS[activeTask].bg, border: `1.5px solid ${QUEST_TASKS[activeTask].border}`, borderRadius: 14, padding: '13px 14px', fontSize: 14, fontWeight: 900, color: '#09090B', cursor: 'default' }}
         >
           <div style={{ background: '#fff', padding: 7, borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', flexShrink: 0 }}>
-           
-<TaskIcon size={16} color={QUEST_TASKS[activeTask].color} />
+            <TaskIcon size={16} color={QUEST_TASKS[activeTask].color} />
           </div>
-          {QUEST_TASKS[activeTask].name}
-          <ChevronRight size={14} color="#D4D4D8" style={{ marginLeft: 'auto' }} />
+          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{QUEST_TASKS[activeTask].name}</span>
+          <ChevronRight size={14} color="#D4D4D8" style={{ marginLeft: 'auto', flexShrink: 0 }} />
         </motion.div>
       </AnimatePresence>
 
-      {/* XP progress bars */}
       <div style={{ marginTop: 16 }}>
         <XPBar label="AI Explorer" value={6} max={8} color="#3B82F6" />
         <XPBar label="Data Detective" value={3} max={5} color="#EC4899" />
@@ -329,17 +300,14 @@ function ChildModePreview() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PRO MODE PREVIEW CARD
-// ─────────────────────────────────────────────────────────────────────────────
 function ProModePreview() {
   return (
     <motion.div
+      className="preview-card"
       initial={{ y: 24, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }}
       style={{ position: 'relative', zIndex: 2, background: 'rgba(9,9,11,0.9)', backdropFilter: 'blur(24px)', border: '1px solid #27272A', borderRadius: 24, padding: 22, boxShadow: '0 30px 60px rgba(0,0,0,0.35)' }}
     >
-      {/* File header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ background: '#18181B', border: '1px solid #27272A', padding: '5px 7px', borderRadius: 7 }}><Code2 size={14} color="#71717A" /></div>
           <span style={{ fontSize: 12, fontFamily: "'DM Mono',monospace", color: '#D4D4D8', fontWeight: 600 }}>AI_Engineer.py</span>
@@ -349,7 +317,6 @@ function ProModePreview() {
         </div>
       </div>
 
-      {/* Skill distribution bars */}
       <div style={{ marginBottom: 18 }}>
         {PRO_SKILLS.map((s, i) => (
           <div key={s.name} style={{ marginBottom: 9 }}>
@@ -370,11 +337,9 @@ function ProModePreview() {
         ))}
       </div>
 
-      {/* Weekly XP Chart */}
       <WeeklyXPChart />
 
-      {/* Code snippet */}
-      <div style={{ marginTop: 16, background: '#000000', borderRadius: 14, padding: '14px 16px', border: '1px solid #1C1C1E', fontFamily: "'DM Mono',monospace", fontSize: 12, lineHeight: 1.75, color: '#D4D4D8' }}>
+      <div style={{ marginTop: 16, background: '#000000', borderRadius: 14, padding: '14px 16px', border: '1px solid #1C1C1E', fontFamily: "'DM Mono',monospace", fontSize: 12, lineHeight: 1.75, color: '#D4D4D8', overflowX: 'auto' }}>
         <span style={{ color: '#F472B6' }}>from</span>
         <span style={{ color: '#60A5FA' }}> langchain </span>
         <span style={{ color: '#F472B6' }}>import</span>
@@ -393,7 +358,6 @@ function ProModePreview() {
         />
       </div>
 
-      {/* Bottom stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 14 }}>
         {[{ label: 'Rank', val: '#24', color: '#FBBF24' }, { label: 'Streak', val: '12d', color: '#EF4444' }, { label: 'Modules', val: '7/12', color: '#60A5FA' }].map(s => (
           <div key={s.label} style={{ background: '#18181B', border: '1px solid #27272A', borderRadius: 10, padding: '9px 10px', textAlign: 'center' }}>
@@ -406,9 +370,6 @@ function ProModePreview() {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TESTIMONIAL CARD
-// ─────────────────────────────────────────────────────────────────────────────
 function TestimonialCard({ t, delay }) {
   return (
     <motion.div
@@ -435,9 +396,6 @@ function TestimonialCard({ t, delay }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// NAVBAR
-// ─────────────────────────────────────────────────────────────────────────────
 function Navbar({ navigate }) {
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
@@ -463,25 +421,26 @@ function Navbar({ navigate }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 280, height: 196, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: 'transparent' }}>
-    {/* Bina import kiye direct public folder ka path */}
-    <img 
-      src="/logo.png" 
-      alt="EduAIQuest Logo" 
-      style={{ width: '180%', height: '150%', objectFit: 'contain' }} 
-    />
-  </div>
-        {/* <span style={{ fontSize: 21, fontWeight: 900, fontFamily: "'Syne',sans-serif", letterSpacing: '-0.6px', color: '#09090B' }}>EduAIQuest.</span> */}
+        {/* Yahan aapka original desktop size CSS class se aa raha hai */}
+        <div className="nav-logo-container">
+          <img 
+            src="/logo.png" 
+            alt="EduAIQuest Logo" 
+            className="nav-logo-img"
+          />
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div className="nav-buttons" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <button
+          className="nav-btn-link"
           onClick={() => navigate('/login')}
           style={{ background: 'transparent', border: 'none', color: '#52525B', fontWeight: 800, padding: '9px 18px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, transition: 'color 0.2s' }}
         >
           Log in
         </button>
         <MagneticButton
+          className="nav-btn-primary"
           onClick={() => navigate('/register')}
           style={{ background: '#09090B', border: 'none', color: '#fff', fontWeight: 900, padding: '11px 24px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, boxShadow: '0 8px 20px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}
         >
@@ -492,9 +451,6 @@ function Navbar({ navigate }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN LANDING PAGE
-// ─────────────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate()
   const heroRef = useRef(null)
@@ -538,30 +494,76 @@ export default function LandingPage() {
           text-transform:uppercase; font-weight:700; border:1px solid #E4E4E7;
         }
         .check-item {
-          display:flex; align-items:center; gap:9px;
-          font-size:14px; font-weight:700; color:#3F3F46;
+          display:flex; align-items:flex-start; gap:9px;
+          font-size:14px; font-weight:700; color:#3F3F46; line-height: 1.4;
         }
 
-        @media(max-width:768px){
-          .hero-title { font-size: 52px !important; letter-spacing: -2px !important; }
-          .dual-grid { flex-direction: column !important; }
-          .workflow-grid { grid-template-columns: 1fr 1fr !important; }
-          .stat-grid { grid-template-columns: 1fr 1fr !important; }
-          .testimonial-grid { grid-template-columns: 1fr !important; }
-          .cta-title { font-size: 40px !important; }
-          .hide-mobile { display: none !important; }
+        /* 🟢 DESKTOP ORIGINAL LOGO SIZES 🟢 */
+        .nav-logo-container {
+          width: 280px;
+          height: 196px;
+          border-radius: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          background: transparent;
         }
-        @media(max-width:480px){
+        .nav-logo-img {
+          width: 180%;
+          height: 150%;
+          object-fit: contain;
+        }
+        .footer-logo-img {
+          width: 40%;
+          height: 40%;
+          object-fit: contain;
+        }
+
+        /* 100% RESPONSIVE CSS INJECTED HERE */
+        @media(max-width: 1024px) {
+          .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .workflow-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+
+        @media(max-width: 768px) {
+          /* 📱 MOBILE LOGO SIZES 📱 */
+          .nav-logo-container {
+            width: 140px !important;
+            height: 40px !important;
+          }
+          .nav-logo-img {
+            width: 100% !important;
+            height: 100% !important;
+          }
+          .footer-logo-img {
+            width: 120px !important;
+            height: auto !important;
+          }
+
+          .hero-title { font-size: 46px !important; letter-spacing: -1.5px !important; }
+          .dual-grid { flex-direction: column !important; }
+          .mode-card { flex-basis: 100% !important; min-width: 0 !important; padding: 32px 24px !important; }
+          .testimonial-grid { grid-template-columns: 1fr !important; }
+          .cta-title { font-size: 34px !important; }
+          .hide-mobile { display: none !important; }
+          .nav-buttons button { padding: 8px 14px !important; font-size: 13px !important; }
+          .nav-btn-link { display: none !important; }
+          .hero-cta { flex-direction: column; width: 100%; max-width: 300px; margin: 0 auto; }
+          .hero-cta button { width: 100%; justify-content: center; }
+        }
+
+        @media(max-width: 480px) {
           .workflow-grid { grid-template-columns: 1fr !important; }
-          .stat-grid { grid-template-columns: 1fr 1fr !important; }
+          .stat-grid { grid-template-columns: 1fr !important; }
+          .hero-title { font-size: 38px !important; }
+          .preview-card { padding: 18px !important; }
+          .donut-row { flex-direction: column; gap: 16px; }
         }
       `}</style>
 
       <Navbar navigate={navigate} />
 
-      {/* ═══════════════════════════════════════════════════════════════
-          HERO SECTION
-      ═══════════════════════════════════════════════════════════════ */}
       <motion.section
         ref={heroRef}
         style={{ y: heroY, opacity: heroOpacity, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '160px 6% 80px', textAlign: 'center', position: 'relative', zIndex: 10 }}
@@ -582,12 +584,13 @@ export default function LandingPage() {
 
         <motion.p
           initial={{ y: 28, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.7 }}
-          style={{ fontSize: 20, color: '#52525B', lineHeight: 1.65, maxWidth: 620, margin: '0 auto 52px', fontWeight: 600 }}
+          style={{ fontSize: 'clamp(16px, 3vw, 20px)', color: '#52525B', lineHeight: 1.65, maxWidth: 620, margin: '0 auto 52px', fontWeight: 600 }}
         >
           One intelligent platform, two entirely different realities. The Dynamic Engine transforms the UI, difficulty, and tone based entirely on who you are.
         </motion.p>
 
         <motion.div
+          className="hero-cta"
           initial={{ y: 28, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.7 }}
           style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 60 }}
         >
@@ -605,7 +608,6 @@ export default function LandingPage() {
           </MagneticButton>
         </motion.div>
 
-        {/* Social proof */}
         <motion.div
           initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.45, duration: 0.6 }}
           style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}
@@ -626,9 +628,6 @@ export default function LandingPage() {
         </motion.div>
       </motion.section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          DUAL MODE CARDS
-      ═══════════════════════════════════════════════════════════════ */}
       <section id="modes" style={{ padding: '100px 6%', position: 'relative', zIndex: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -638,15 +637,14 @@ export default function LandingPage() {
           <h2 style={{ fontSize: 'clamp(32px, 5vw, 62px)', fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-2px', color: '#09090B', marginTop: 20, marginBottom: 16 }}>
             Two perfectly crafted modes.
           </h2>
-          <p style={{ fontSize: 17, color: '#71717A', maxWidth: 520, margin: '0 auto', fontWeight: 600, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(15px, 3vw, 17px)', color: '#71717A', maxWidth: 520, margin: '0 auto', fontWeight: 600, lineHeight: 1.6 }}>
             Same platform, entirely different realities. The system detects who you are and adapts everything — from colors to code complexity.
           </p>
         </motion.div>
 
-        <div className="dual-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'center', maxWidth: 1220, margin: '0 auto' }}>
-
-          {/* KIDS CARD */}
+        <div className="dual-grid" style={{ display: 'flex', gap: 32, justifyContent: 'center', maxWidth: 1220, margin: '0 auto' }}>
           <motion.div
+            className="mode-card"
             initial={{ y: 48, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.7 }}
             style={{ flex: '1 1 480px', position: 'relative', borderRadius: 40, padding: '44px 38px', background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(40px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 24px 52px rgba(0,0,0,0.06)', overflow: 'hidden' }}
           >
@@ -655,14 +653,14 @@ export default function LandingPage() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FDF2F8', color: '#DB2777', padding: '8px 16px', borderRadius: 99, fontSize: 14, fontWeight: 900, marginBottom: 18, border: '1px solid #FBCFE8' }}>
                 <Gamepad2 size={17} /> Age 10–15 · Kids Mode
               </div>
-              <h3 style={{ fontSize: 40, fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-1.5px', marginBottom: 14, color: '#09090B' }}>Kids Adventure</h3>
+              <h3 style={{ fontSize: 'clamp(32px, 5vw, 40px)', fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-1.5px', marginBottom: 14, color: '#09090B' }}>Kids Adventure</h3>
               <p style={{ fontSize: 16, color: '#52525B', lineHeight: 1.65, fontWeight: 600, marginBottom: 22 }}>
                 Soft, bouncy, highly interactive. Complex AI theories taught through visual canvases, voice chats, and gamified zone mechanics.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['8 unlockable zones with XP & badges', 'ARIA mascot guides every step', 'Visual + story + logic tasks'].map(f => (
                   <div key={f} className="check-item">
-                    <CheckCircle size={15} color="#10B981" strokeWidth={2.5} style={{ flexShrink: 0 }} /> {f}
+                    <CheckCircle size={15} color="#10B981" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} /> {f}
                   </div>
                 ))}
               </div>
@@ -670,8 +668,8 @@ export default function LandingPage() {
             <ChildModePreview />
           </motion.div>
 
-          {/* PRO CARD */}
           <motion.div
+            className="mode-card"
             initial={{ y: 48, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.7, delay: 0.1 }}
             style={{ flex: '1 1 480px', position: 'relative', borderRadius: 40, padding: '44px 38px', background: '#09090B', border: '1px solid #27272A', boxShadow: '0 40px 80px rgba(0,0,0,0.35)', overflow: 'hidden' }}
           >
@@ -681,14 +679,14 @@ export default function LandingPage() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1E1B4B', color: '#818CF8', padding: '8px 16px', borderRadius: 99, fontSize: 14, fontWeight: 900, marginBottom: 18, border: '1px solid #312E81' }}>
                 <TerminalSquare size={17} /> Age 16+ · Pro Mode
               </div>
-              <h3 style={{ fontSize: 40, fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-1.5px', color: '#ffffff', marginBottom: 14 }}>Pro IDE Mode</h3>
+              <h3 style={{ fontSize: 'clamp(32px, 5vw, 40px)', fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-1.5px', color: '#ffffff', marginBottom: 14 }}>Pro IDE Mode</h3>
               <p style={{ fontSize: 16, color: '#A1A1AA', lineHeight: 1.65, fontWeight: 500, marginBottom: 22 }}>
                 Minimalist dark mode. Real skill analytics, raw Python sandboxes, deep RAG integration, and an Elo rating system that tracks every answer.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {['Live Elo rating & skill radar', 'Python sandbox with AI grading', 'RAG-powered context engine'].map(f => (
                   <div key={f} className="check-item" style={{ color: '#A1A1AA' }}>
-                    <CheckCircle size={15} color="#10B981" strokeWidth={2.5} style={{ flexShrink: 0 }} /> {f}
+                    <CheckCircle size={15} color="#10B981" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} /> {f}
                   </div>
                 ))}
               </div>
@@ -698,9 +696,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          STATS BENTO ROW
-      ═══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: '40px 6%', maxWidth: 1220, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
           {PLATFORM_STATS.map((s, i) => (
@@ -712,16 +707,13 @@ export default function LandingPage() {
               <div style={{ width: 52, height: 52, borderRadius: 16, background: `${s.color}14`, border: `1.5px solid ${s.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <s.icon size={24} color={s.color} />
               </div>
-              <div style={{ fontSize: 46, fontFamily: "'Syne',sans-serif", fontWeight: 900, color: s.color, marginBottom: 8, lineHeight: 1 }}>{s.val}</div>
+              <div style={{ fontSize: 'clamp(32px, 4vw, 46px)', fontFamily: "'Syne',sans-serif", fontWeight: 900, color: s.color, marginBottom: 8, lineHeight: 1 }}>{s.val}</div>
               <div style={{ fontSize: 13, color: '#71717A', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>{s.label}</div>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          WORKFLOW SECTION
-      ═══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: '100px 6%', maxWidth: 1220, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 64 }}>
           <span className="section-tag">How It Works</span>
@@ -751,9 +743,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          TESTIMONIALS
-      ═══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: '80px 6%', maxWidth: 1220, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: 56 }}>
           <span className="section-tag">Testimonials</span>
@@ -764,15 +753,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          CTA SECTION
-      ═══════════════════════════════════════════════════════════════ */}
       <section style={{ padding: '100px 6%', textAlign: 'center', position: 'relative', zIndex: 10 }}>
         <motion.div
           initial={{ opacity: 0, y: 44 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
           style={{ background: '#09090B', borderRadius: 48, padding: '100px 40px', maxWidth: 1100, margin: '0 auto', position: 'relative', overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.22)' }}
         >
-          {/* Decorative glow */}
           <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translate(-50%,-50%)', width: '80%', height: '200%', background: 'radial-gradient(ellipse, rgba(59,130,246,0.18) 0%, transparent 60%)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '40%', height: '80%', background: 'radial-gradient(ellipse, rgba(139,92,246,0.15) 0%, transparent 65%)', pointerEvents: 'none' }} />
 
@@ -783,10 +768,10 @@ export default function LandingPage() {
             <h2 className="cta-title" style={{ fontSize: 'clamp(38px, 5.5vw, 72px)', fontFamily: "'Syne',sans-serif", fontWeight: 900, letterSpacing: '-2.5px', marginBottom: 22, color: '#ffffff', lineHeight: 1.1 }}>
               Experience the future<br />of AI Education.
             </h2>
-            <p style={{ fontSize: 19, color: '#71717A', marginBottom: 52, maxWidth: 520, margin: '0 auto 52px', fontWeight: 500, lineHeight: 1.65 }}>
+            <p style={{ fontSize: 'clamp(15px, 3vw, 19px)', color: '#71717A', marginBottom: 52, maxWidth: 520, margin: '0 auto 52px', fontWeight: 500, lineHeight: 1.65 }}>
               Built with modern architecture. Designed for real users. Start exploring the dual-mode platform today.
             </p>
-            <div style={{ display: 'flex', gap: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div className="hero-cta" style={{ display: 'flex', gap: 18, justifyContent: 'center', flexWrap: 'wrap' }}>
               <MagneticButton
                 onClick={() => navigate('/register')}
                 style={{ background: '#ffffff', border: 'none', color: '#09090B', borderRadius: 99, padding: '18px 52px', fontSize: 17, fontFamily: "'Nunito',sans-serif", fontWeight: 900, cursor: 'pointer', boxShadow: '0 14px 32px rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', gap: 9 }}
@@ -804,16 +789,13 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          FOOTER
-      ═══════════════════════════════════════════════════════════════ */}
       <footer style={{ borderTop: '1px solid #E4E4E7', padding: '44px 6%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20, position: 'relative', zIndex: 10, background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img 
-      src="/logo.png" 
-      alt="EduAIQuest Logo" 
-      style={{ width: '40%', height: '40%', objectFit: 'contain' }} 
-    />
+          <img 
+            src="/logo.png" 
+            alt="EduAIQuest Logo" 
+            className="footer-logo-img"
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
