@@ -14,10 +14,10 @@ function useIsMobile() {
   return m
 }
 
-export default function LearningPath({ track, modules: modulesProp, onOpenWorkspace, onOpenWorkspaceDirect }) {
+export default function LearningPath({ track, onOpenWorkspace }) {
   const { C } = useTheme()
   const isMobile = useIsMobile()
-  const modules = modulesProp?.length ? modulesProp : (MODULES_DATA[track.id] || MODULES_DATA.data_scientist)
+  const modules = MODULES_DATA[track.id] || MODULES_DATA.data_scientist
   const done    = modules.filter(m => m.status === 'done').length
 
   return (

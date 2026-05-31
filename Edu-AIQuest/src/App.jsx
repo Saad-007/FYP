@@ -11,6 +11,7 @@ import KidsMissionPage from './pages/kids/KidMissionPage'
 import KidsDashboard from './pages/kids/KidsDashboard'
 import ProDashboard from './pages/pro/ProDashboard'
 import { ThemeProvider } from './pages/pro/data/ThemeContext'
+import KidsProfilePage from './pages/kids/ProfilePage'
 const Spinner = () => (
   <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAFAFA' }}>
     <div style={{ width: 40, height: 40, border: '4px solid #3B82F6', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -92,6 +93,7 @@ useEffect(() => {
         <Route path="/pro/dashboard" element={
           <ProtectedRoute requiredMode="pro"><ProDashboard /></ProtectedRoute>
         } />
+        <Route path="/kids/profile" element={<KidsProfilePage />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -1,185 +1,179 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import * as Icons from 'lucide-react'
-import { GripVertical, CheckCircle2, X, Zap, RotateCcw, ChevronRight, Puzzle, Trophy } from 'lucide-react'
+import { Circle, Square, Diamond, Star, Trophy, X, RotateCcw } from 'lucide-react'
 import { XP_MAP } from '../../../data/kids/zoneData'
 
-// Helper component to render icons from strings
-const DynamicIcon = ({ name, size = 20, color = 'currentColor', ...props }) => {
-  const IconComponent = Icons[name] || Icons.HelpCircle
-  return <IconComponent size={size} color={color} {...props} />
-}
+// ── Strict Pattern Rules ──
+// Correct Order: Circle -> Square -> Diamond -> Star
+const TARGET_ORDER = ['circle', 'square', 'diamond', 'star']
 
-export default function LogicTask({ zone, data, onComplete }) {
-  const shuffle = arr => [...arr].sort(() => Math.random() - 0.5)
-  const [steps, setSteps]     = useState(() => shuffle(data.steps))
-  const [dragIdx, setDragIdx] = useState(null)
-  const [checked, setChecked] = useState(false)
-  const [correct, setCorrect] = useState(false)
-  const [attempts, setAttempts] = useState(0)
+const INITIAL_BLOCKS = [
+  { id: 'circle',  icon: Circle,  color: '#E11D48', bg: '#FB7185', shape: 'Circle' },   // Red Circle, Pink BG
+  { id: 'square',  icon: Square,  color: '#1D4ED8', bg: '#60A5FA', shape: 'Square' },   // Dark Blue Square, Light Blue BG
+  { id: 'diamond', icon: Diamond, color: '#EA580C', bg: '#FB923C', shape: 'Diamond' },  // Orange Diamond, Light Orange BG
+  { id: 'star',    icon: Star,    color: '#EAB308', bg: '#2DD4BF', shape: 'Star' },     // Yellow Star, Teal/Green BG
+]
 
-  const onDragOver = (e, i) => {
-    e.preventDefault()
-    if (dragIdx === null || dragIdx === i) return
-    const arr = [...steps]
-    const [m] = arr.splice(dragIdx, 1)
-    arr.splice(i, 0, m)
-    setSteps(arr)
-    setDragIdx(i)
-    setChecked(false)
-    setCorrect(false)
+export default function LogicTask({ zone, onComplete }) {
+  const [available, setAvailable] = useState(INITIAL_BLOCKS)
+  const [answer, setAnswer] = useState([])
+  
+  const [showError, setShowError] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  // Move block from Available to Answer Dropzone
+  const handleSelect = (block) => {
+    if (answer.length >= 4) return // Max 4 blocks allowed
+    setAvailable(prev => prev.filter(b => b.id !== block.id))
+    setAnswer(prev => [...prev, block])
   }
 
-  const check = () => {
-    const ok = steps.every((s, i) => s.order === i)
-    setChecked(true)
-    setCorrect(ok)
-    setAttempts(p => p + 1)
+  // Move block back from Answer to Available
+  const handleDeselect = (block) => {
+    setAnswer(prev => prev.filter(b => b.id !== block.id))
+    setAvailable(prev => [...prev, block])
   }
 
-  const reset = () => { 
-    setSteps(shuffle(data.steps))
-    setChecked(false)
-    setCorrect(false) 
+  // Check the pattern logic
+  const handleCheck = () => {
+    if (answer.length < 4) {
+      setShowError(true)
+      return
+    }
+
+    const isCorrect = answer.every((block, index) => block.id === TARGET_ORDER[index])
+
+    if (isCorrect) {
+      setShowSuccess(true)
+    } else {
+      setShowError(true)
+    }
+  }
+
+  // Reset the puzzle after an error
+  const handleRetry = () => {
+    setAvailable(INITIAL_BLOCKS)
+    setAnswer([])
+    setShowError(false)
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      
-      {/* ── Header ── */}
-      <div style={{ background: '#ffffff', padding: '16px 20px', borderRadius: 20, border: '1px solid #E4E4E7', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
-        <div style={{ background: '#F4F4F5', padding: 8, borderRadius: 12 }}>
-          <GripVertical size={18} color="#71717A" />
-        </div>
-        <div style={{ fontSize: 14, color: '#52525B', fontWeight: 700 }}>
-          Drag the blocks to build the correct logical sequence (Top to Bottom).
-        </div>
-      </div>
+    // ── Negative Margins & Mint Background (Like Image) ──
+    <div style={{ 
+      margin: '-32px', 
+      padding: '24px 20px', 
+      borderRadius: '32px', 
+      background: '#98D8D8', // Mint/Teal background
+      minHeight: '750px',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative',
+      fontFamily: "'Nunito', sans-serif"
+    }}>
 
-      {/* ── Draggable Flowchart Steps ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {steps.map((step, i) => {
-          const isRight = checked && step.order === i
-          const isWrong = checked && !correct && step.order !== i
-          
-          return (
-            <div key={step.id} style={{ display: 'flex', alignItems: 'stretch', gap: 14 }}>
-              
-              {/* Vertical Timeline Indicator */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 28, flexShrink: 0 }}>
-                {i > 0 && <div style={{ width: 3, flex: 1, background: isRight ? '#10B981' : isWrong ? '#FECACA' : '#E4E4E7', borderRadius: 99, margin: '2px 0' }} />}
-                <div style={{ 
-                  width: 28, 
-                  height: 28, 
-                  borderRadius: '50%', 
-                  background: isRight ? '#10B981' : isWrong ? '#EF4444' : '#ffffff', 
-                  border: `2px solid ${isRight ? '#10B981' : isWrong ? '#EF4444' : zone.color + '66'}`, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  fontSize: 12, 
-                  fontWeight: 900, 
-                  color: isRight || isWrong ? '#ffffff' : zone.color, 
-                  fontFamily: "'DM Mono',monospace",
-                  boxShadow: isRight || isWrong ? 'none' : '0 2px 6px rgba(0,0,0,0.05)'
-                }}>
-                  {i + 1}
-                </div>
-                {i < steps.length - 1 && <div style={{ width: 3, flex: 1, background: isRight ? '#10B981' : isWrong ? '#FECACA' : '#E4E4E7', borderRadius: 99, margin: '2px 0' }} />}
-              </div>
-
-              {/* Draggable Card */}
-              <motion.div layout animate={isWrong ? { x: [-5,5,-5,5,0] } : {}} transition={{ duration: 0.35 }}
-                draggable onDragStart={() => setDragIdx(i)} onDragOver={e => onDragOver(e, i)} onDragEnd={() => setDragIdx(null)}
-                style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 14, 
-                  background: isRight ? '#F0FDF4' : isWrong ? '#FEF2F2' : '#ffffff', 
-                  border: `2px solid ${isRight ? '#86EFAC' : isWrong ? '#FECACA' : dragIdx === i ? zone.color : '#E4E4E7'}`, 
-                  borderRadius: 18, 
-                  padding: '14px 18px', 
-                  cursor: 'grab', 
-                  userSelect: 'none', 
-                  boxShadow: dragIdx === i ? `0 12px 30px ${zone.glow}` : '0 4px 12px rgba(0,0,0,0.03)', 
-                  transition: 'background 0.25s, border-color 0.25s',
-                  zIndex: dragIdx === i ? 10 : 1,
-                  margin: '4px 0'
-                }}>
-                
-                {/* Dynamic Vector Icon */}
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: isRight ? '#DCFCE7' : isWrong ? '#FEE2E2' : step.bg || '#F4F4F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DynamicIcon name={step.icon} size={18} color={isRight ? '#16A34A' : isWrong ? '#EF4444' : step.color || '#52525B'} />
-                </div>
-                
-                <span style={{ fontSize: 15, fontWeight: 800, color: '#09090B', flex: 1 }}>{step.text}</span>
-                
-                {/* Status Indicator */}
-                <div style={{ width: 24, display: 'flex', justifyContent: 'center' }}>
-                  {isRight ? <CheckCircle2 size={20} color="#10B981" /> : isWrong ? <X size={20} color="#EF4444" /> : <GripVertical size={18} color="#D4D4D8" />}
-                </div>
-              </motion.div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* ── Controls ── */}
-      {!correct && (
-        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={check}
-            style={{ flex: 1, padding: '16px', background: zone.color, color: '#ffffff', border: 'none', borderRadius: 16, fontSize: 15, fontWeight: 900, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: `0 8px 24px ${zone.glow}` }}>
-            <Zap size={18} fill="currentColor" /> Check Sequence
-          </motion.button>
-          
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={reset}
-            style={{ padding: '16px 22px', background: '#ffffff', color: '#52525B', border: '2px solid #E4E4E7', borderRadius: 16, fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <RotateCcw size={18} /> Reset
-          </motion.button>
-        </div>
-      )}
-
-      {/* ── Error Feedback ── */}
-      {checked && !correct && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 16, padding: '16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ background: '#EF4444', borderRadius: '50%', padding: 4 }}>
-             <X size={14} color="#ffffff" strokeWidth={3} />
-          </div>
-          <div>
-             <div style={{ fontSize: 14, color: '#991B1B', fontWeight: 800 }}>Not quite right!</div>
-             <div style={{ fontSize: 12, color: '#B91C1C', fontWeight: 600 }}>Attempt #{attempts} — The red steps are out of order. Try again!</div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* ── Success Celebration ── */}
+      {/* ── SUCCESS MODAL ── */}
       <AnimatePresence>
-        {correct && (
-          <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }}
-            style={{ background: `${zone.color}08`, border: `2px solid ${zone.color}40`, borderRadius: 24, padding: '32px', textAlign: 'center', boxShadow: `0 12px 40px ${zone.glow}`, marginTop: 10 }}>
-            
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '4px solid #ffffff', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
-                <Puzzle size={36} color="#ffffff" />
+        {showSuccess && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, borderRadius: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}>
+            <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                <Trophy size={64} color="#FACC15" strokeWidth={1.5} />
               </div>
-            </div>
-            
-            <div style={{ fontSize: 24, fontWeight: 900, color: '#09090B', fontFamily: "'Syne',sans-serif", marginBottom: 8 }}>
-              Logic Master!
-            </div>
-            <div style={{ fontSize: 15, color: '#52525B', marginBottom: 24, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              Solved in {attempts} attempt{attempts !== 1 ? 's' : ''}. Earned <Trophy size={16} color="#D97706" /> <strong style={{ color: '#D97706' }}>+{XP_MAP.logic} XP</strong>
-            </div>
-            
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onComplete}
-              style={{ background: zone.color, color: '#ffffff', border: 'none', borderRadius: 16, padding: '16px 36px', fontSize: 16, fontWeight: 900, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", display: 'inline-flex', alignItems: 'center', gap: 10, boxShadow: `0 8px 24px ${zone.glow}` }}>
-              Claim XP & Continue <ChevronRight size={20} strokeWidth={3} />
-            </motion.button>
+              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Brilliant!</h2>
+              <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 8px', fontWeight: 700 }}>You cracked the pattern!</p>
+              <p style={{ fontSize: 20, color: '#22C55E', margin: '0 0 28px', fontWeight: 900 }}>+{XP_MAP.logic} XP!</p>
+              
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onComplete}
+                style={{ width: '100%', padding: '16px 10px', background: '#98D8D8', color: '#000', border: '2px solid #000', borderRadius: 99, fontWeight: 900, fontSize: 16, cursor: 'pointer', boxShadow: '0 4px 0 #000' }}>
+                Back to Worldmap
+              </motion.button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── ERROR/INCORRECT MODAL ── */}
+      <AnimatePresence>
+        {showError && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, borderRadius: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}>
+            <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                <div style={{ background: '#FEE2E2', padding: 16, borderRadius: '50%' }}>
+                  <X size={48} color="#EF4444" strokeWidth={2.5} />
+                </div>
+              </div>
+              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Incorrect!</h2>
+              <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 28px', fontWeight: 700 }}>That's not the right pattern.<br/>Let's do it again! 🔄</p>
+              
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleRetry}
+                style={{ width: '100%', padding: '16px 10px', background: '#FECACA', color: '#B91C1C', border: 'none', borderRadius: 16, fontWeight: 900, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <RotateCcw size={18} /> Try Again
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main Header ── */}
+      <div style={{ textAlign: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1A1A', margin: '16px 0', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.5px' }}>
+          Pattern Puzzle Challenge!
+        </h2>
+      </div>
+
+      {/* ── Instruction Box ── */}
+      <div style={{ background: '#ffffff', padding: '16px', borderRadius: 16, width: '100%', margin: '0 auto 20px', textAlign: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+        <div style={{ fontSize: 18, fontWeight: 900, color: '#000', marginBottom: 8 }}>Arrange the blocks in order! 🎯</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#71717A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          Drag and drop: <span style={{ color: '#EF4444' }}>🔴</span> → <span style={{ color: '#3B82F6' }}>🟦</span> → <span style={{ color: '#F97316' }}>🔶</span> → <span style={{ color: '#EAB308' }}>⭐</span>
+        </div>
+      </div>
+
+      {/* ── Drop Zone (Your Answer) ── */}
+      <div style={{ background: '#F3F4F6', borderRadius: 16, padding: '20px 16px', minHeight: 260, position: 'relative', display: 'flex', flexDirection: 'column', border: '2px solid #E5E7EB', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.02)', marginBottom: 24 }}>
+        <h3 style={{ textAlign: 'center', margin: '0 0 20px', fontSize: 18, fontWeight: 900, color: '#000' }}>Your Answer:</h3>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', flex: 1, alignContent: 'center' }}>
+          {answer.map((block) => (
+            <motion.div layoutId={block.id} key={block.id} onClick={() => handleDeselect(block)}
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              style={{ width: 64, height: 64, background: block.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `3px solid ${block.color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              <block.icon size={36} color={block.color} fill={block.color} />
+            </motion.div>
+          ))}
+        </div>
+
+        {answer.length === 0 && (
+          <div style={{ textAlign: 'center', color: '#9CA3AF', fontSize: 11, fontWeight: 700, marginTop: 'auto', fontStyle: 'italic' }}>
+            Click blocks below to add them here
+          </div>
+        )}
+      </div>
+
+      {/* ── Available Blocks ── */}
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 900, color: '#1A1A1A' }}>Available Blocks</h3>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, minHeight: 70 }}>
+          {available.map((block) => (
+            <motion.div layoutId={block.id} key={block.id} onClick={() => handleSelect(block)}
+              whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.95 }}
+              style={{ width: 64, height: 64, background: block.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `3px solid ${block.color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+              <block.icon size={36} color={block.color} fill={block.color} />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Purple Check Button ── */}
+      <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'center', paddingBottom: 20 }}>
+        <motion.button 
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleCheck}
+          style={{ padding: '16px 40px', background: '#C4B5FD', color: '#000', border: '2px solid #000', borderRadius: 99, fontSize: 18, fontWeight: 900, cursor: 'pointer', fontFamily: "'Syne',sans-serif", boxShadow: '0 4px 0 #000', display: 'flex', alignItems: 'center', gap: 8 }}
+        >
+          Check Answer ✓
+        </motion.button>
+      </div>
+
     </div>
   )
 }

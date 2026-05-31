@@ -18,10 +18,10 @@ function useBreakpoint() {
   return { isMobile: bp < 640, isTablet: bp >= 640 && bp < 1024, isDesktop: bp >= 1024 }
 }
 
-export default function Overview({ track, profile, xp, streak, level, modules: modulesProp, onOpenWorkspace, onOpenWorkspaceDirect }) {
+export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace }) {
   const { C } = useTheme()
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
-  const modules = modulesProp.length ? modulesProp : (MODULES_DATA[track.id] || MODULES_DATA.data_scientist)
+  const modules = MODULES_DATA[track.id] || MODULES_DATA.data_scientist
   const done    = modules.filter(m => m.status === 'done').length
   const active  = modules.find(m => m.status === 'active')
 
@@ -68,7 +68,7 @@ export default function Overview({ track, profile, xp, streak, level, modules: m
                   <Badge label={TYPE_CFG[active.type].label} color={TYPE_CFG[active.type].color} bg={TYPE_CFG[active.type].bg} />
                 </div>
               </div>
-              <button onClick={() => onOpenWorkspaceDirect ? onOpenWorkspaceDirect() : onOpenWorkspace({})}
+              <button onClick={onOpenWorkspace}
                 style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
               >
                 <Play size={13} fill={C.bg} /> Start Now
@@ -119,7 +119,7 @@ export default function Overview({ track, profile, xp, streak, level, modules: m
                       <div style={{ fontSize: 12, fontWeight: 600, color: C.amber }}>+{proj.xp.toLocaleString()} XP</div>
                       <div style={{ fontSize: 11, color: C.muted }}>{proj.dur}</div>
                     </div>
-                    <button onClick={() => onOpenWorkspaceDirect ? onOpenWorkspaceDirect() : onOpenWorkspace({})}
+                    <button onClick={onOpenWorkspace}
                       style={{ background: C.raised, border: `1px solid ${C.border}`, color: C.textSub, padding: '6px 11px', borderRadius: 7, fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.12s' }}
                       onMouseEnter={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = C.accent }}
                       onMouseLeave={e => { e.currentTarget.style.background = C.raised; e.currentTarget.style.color = C.textSub; e.currentTarget.style.borderColor = C.border }}
