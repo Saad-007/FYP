@@ -15,11 +15,11 @@ import {
   Rocket, Search, Paintbrush, Mic, Puzzle,
   Award, Compass, ShieldCheck, Diamond, ShoppingBag 
 } from 'lucide-react'
-import AIMascot from '../../components/kids/shared/AIMascot'
+import AIMascot from '../../components/kids/Shared/AIMascot'
 import LivingMapBackground, { EnergyPulse, XPPopup } from '../../components/kids/Dashboard/LivingMapBackground'
 import KidsShop from '../../components/kids/Dashboard/KidsShop'
 import { ZONES_LIST, TASK_TYPES, ZONE_XP, XP_PER_LEVEL, zoneComplete, zoneUnlocked } from '../../data/kids/zoneData'
-import LeaderboardModal from '../../components/kids/dashboard/LeaderBoardModal'
+import LeaderboardModal from '../../components/kids/Dashboard/LeaderBoardModal'
 
 
 // ── Icon maps ──────────────────────────────────────────────────────────────────

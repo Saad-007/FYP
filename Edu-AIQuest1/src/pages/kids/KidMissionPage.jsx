@@ -9,8 +9,8 @@ import VisualTask        from '../../components/kids/mission/VisualTask'
 import StoryTask         from '../../components/kids/mission/StoryTask'
 import LogicTask         from '../../components/kids/mission/LogicTask'
 import BadgeCelebration  from '../../components/kids/mission/BadgeCelebration'
-import TaskTabBar        from '../../components/kids/shared/TaskTabBar'
-import AIMascot          from '../../components/kids/shared/AIMascot'
+import TaskTabBar        from '../../components/kids/Shared/TaskTabBar'
+import AIMascot          from '../../components/kids/Shared/AIMascot'
 import { ZONE_CURRICULUM, XP_MAP, TASK_TYPES } from '../../data/kids/zoneData'
 
 // Helper component for dynamic vector icons
