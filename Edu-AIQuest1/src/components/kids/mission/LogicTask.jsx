@@ -59,7 +59,7 @@ export default function LogicTask({ zone, onComplete }) {
 
   return (
     // ── Negative Margins & Mint Background (Like Image) ──
-    <div style={{ 
+    <div className="logic-task-wrapper" style={{ 
       margin: '-32px', 
       padding: '24px 20px', 
       borderRadius: '32px', 
@@ -71,15 +71,96 @@ export default function LogicTask({ zone, onComplete }) {
       fontFamily: "'Nunito', sans-serif"
     }}>
 
+      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
+      <style>{`
+        /* Desktop styles are inline, here are the Mobile overrides */
+        @media (max-width: 768px) {
+          .logic-task-wrapper {
+            margin: -16px !important;
+            padding: 16px 12px !important;
+            border-radius: 24px !important;
+            min-height: 85vh !important;
+          }
+          .task-header {
+            font-size: 22px !important;
+            margin: 8px 0 !important;
+          }
+          .instruction-box {
+            padding: 12px !important;
+            margin-bottom: 16px !important;
+          }
+          .instruction-title {
+            font-size: 16px !important;
+          }
+          .instruction-hint {
+            font-size: 11px !important;
+          }
+          .drop-zone {
+            min-height: 200px !important;
+            padding: 16px 12px !important;
+            margin-bottom: 16px !important;
+          }
+          .drop-zone-title {
+            font-size: 16px !important;
+            margin: 0 0 16px !important;
+          }
+          
+          /* Resize blocks for smaller screens */
+          .shape-block {
+            width: 54px !important;
+            height: 54px !important;
+            border-width: 2px !important;
+          }
+          .shape-block svg {
+            width: 28px !important;
+            height: 28px !important;
+          }
+          
+          .blocks-container {
+            gap: 8px !important;
+          }
+          .check-btn {
+            padding: 14px 28px !important;
+            font-size: 16px !important;
+          }
+          
+          /* Modals */
+          .modal-card {
+            padding: 28px 20px !important;
+            max-width: 90% !important;
+          }
+          .modal-title {
+            font-size: 22px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .logic-task-wrapper {
+            margin: -12px !important;
+          }
+          .shape-block {
+            width: 48px !important;
+            height: 48px !important;
+          }
+          .shape-block svg {
+            width: 24px !important;
+            height: 24px !important;
+          }
+          .task-header {
+            font-size: 20px !important;
+          }
+        }
+      `}</style>
+
       {/* ── SUCCESS MODAL ── */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, borderRadius: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}>
-            <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <motion.div className="modal-card" initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                 <Trophy size={64} color="#FACC15" strokeWidth={1.5} />
               </div>
-              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Brilliant!</h2>
+              <h2 className="modal-title" style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Brilliant!</h2>
               <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 8px', fontWeight: 700 }}>You cracked the pattern!</p>
               <p style={{ fontSize: 20, color: '#22C55E', margin: '0 0 28px', fontWeight: 900 }}>+{XP_MAP.logic} XP!</p>
               
@@ -96,13 +177,13 @@ export default function LogicTask({ zone, onComplete }) {
       <AnimatePresence>
         {showError && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, borderRadius: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}>
-            <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <motion.div className="modal-card" initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
                 <div style={{ background: '#FEE2E2', padding: 16, borderRadius: '50%' }}>
                   <X size={48} color="#EF4444" strokeWidth={2.5} />
                 </div>
               </div>
-              <h2 style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Incorrect!</h2>
+              <h2 className="modal-title" style={{ fontSize: 26, fontWeight: 900, color: '#1F2937', margin: '0 0 12px', fontFamily: "'Syne',sans-serif" }}>Incorrect!</h2>
               <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 28px', fontWeight: 700 }}>That's not the right pattern.<br/>Let's do it again! 🔄</p>
               
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleRetry}
@@ -116,26 +197,26 @@ export default function LogicTask({ zone, onComplete }) {
 
       {/* ── Main Header ── */}
       <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A1A1A', margin: '16px 0', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.5px' }}>
+        <h2 className="task-header" style={{ fontSize: 24, fontWeight: 900, color: '#1A1A1A', margin: '16px 0', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.5px' }}>
           Pattern Puzzle Challenge!
         </h2>
       </div>
 
       {/* ── Instruction Box ── */}
-      <div style={{ background: '#ffffff', padding: '16px', borderRadius: 16, width: '100%', margin: '0 auto 20px', textAlign: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: '#000', marginBottom: 8 }}>Arrange the blocks in order! 🎯</div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#71717A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          Drag and drop: <span style={{ color: '#EF4444' }}>🔴</span> → <span style={{ color: '#3B82F6' }}>🟦</span> → <span style={{ color: '#F97316' }}>🔶</span> → <span style={{ color: '#EAB308' }}>⭐</span>
+      <div className="instruction-box" style={{ background: '#ffffff', padding: '16px', borderRadius: 16, width: '100%', margin: '0 auto 20px', textAlign: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+        <div className="instruction-title" style={{ fontSize: 18, fontWeight: 900, color: '#000', marginBottom: 8 }}>Arrange the blocks in order! 🎯</div>
+        <div className="instruction-hint" style={{ fontSize: 12, fontWeight: 700, color: '#71717A', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span>Drag and drop:</span> <span style={{ color: '#EF4444' }}>🔴</span> → <span style={{ color: '#3B82F6' }}>🟦</span> → <span style={{ color: '#F97316' }}>🔶</span> → <span style={{ color: '#EAB308' }}>⭐</span>
         </div>
       </div>
 
       {/* ── Drop Zone (Your Answer) ── */}
-      <div style={{ background: '#F3F4F6', borderRadius: 16, padding: '20px 16px', minHeight: 260, position: 'relative', display: 'flex', flexDirection: 'column', border: '2px solid #E5E7EB', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.02)', marginBottom: 24 }}>
-        <h3 style={{ textAlign: 'center', margin: '0 0 20px', fontSize: 18, fontWeight: 900, color: '#000' }}>Your Answer:</h3>
+      <div className="drop-zone" style={{ background: '#F3F4F6', borderRadius: 16, padding: '20px 16px', minHeight: 260, position: 'relative', display: 'flex', flexDirection: 'column', border: '2px solid #E5E7EB', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.02)', marginBottom: 24 }}>
+        <h3 className="drop-zone-title" style={{ textAlign: 'center', margin: '0 0 20px', fontSize: 18, fontWeight: 900, color: '#000' }}>Your Answer:</h3>
         
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', flex: 1, alignContent: 'center' }}>
+        <div className="blocks-container" style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', flex: 1, alignContent: 'center' }}>
           {answer.map((block) => (
-            <motion.div layoutId={block.id} key={block.id} onClick={() => handleDeselect(block)}
+            <motion.div className="shape-block" layoutId={block.id} key={block.id} onClick={() => handleDeselect(block)}
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               style={{ width: 64, height: 64, background: block.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `3px solid ${block.color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
               <block.icon size={36} color={block.color} fill={block.color} />
@@ -153,9 +234,9 @@ export default function LogicTask({ zone, onComplete }) {
       {/* ── Available Blocks ── */}
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 900, color: '#1A1A1A' }}>Available Blocks</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, minHeight: 70 }}>
+        <div className="blocks-container" style={{ display: 'flex', justifyContent: 'center', gap: 12, minHeight: 70, flexWrap: 'wrap' }}>
           {available.map((block) => (
-            <motion.div layoutId={block.id} key={block.id} onClick={() => handleSelect(block)}
+            <motion.div className="shape-block" layoutId={block.id} key={block.id} onClick={() => handleSelect(block)}
               whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.95 }}
               style={{ width: 64, height: 64, background: block.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `3px solid ${block.color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
               <block.icon size={36} color={block.color} fill={block.color} />
@@ -167,6 +248,7 @@ export default function LogicTask({ zone, onComplete }) {
       {/* ── Purple Check Button ── */}
       <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'center', paddingBottom: 20 }}>
         <motion.button 
+          className="check-btn"
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleCheck}
           style={{ padding: '16px 40px', background: '#C4B5FD', color: '#000', border: '2px solid #000', borderRadius: 99, fontSize: 18, fontWeight: 900, cursor: 'pointer', fontFamily: "'Syne',sans-serif", boxShadow: '0 4px 0 #000', display: 'flex', alignItems: 'center', gap: 8 }}
         >

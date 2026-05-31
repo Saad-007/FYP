@@ -1,18 +1,104 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom' // 🚀 navigate aur Navigate hata diya hai
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+
+// --- Responsive Styles with Media Query! ---
+const fonts = `@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}`
+
+const responsiveCSS = `
+@media (max-width: 600px) {
+  body { font-size: 15px; }
+  .register-responsive-card {
+    padding: 28px 10px !important;
+    max-width: 98vw !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    border-radius: 16px !important;
+  }
+  .register-responsive-logo {
+    font-size: 18px !important;
+    margin-bottom: 18px !important;
+  }
+  .register-responsive-title {
+    font-size: 20px !important;
+    margin-bottom: 6px !important;
+  }
+  .register-responsive-sub {
+    font-size: 13px !important;
+    margin-bottom: 16px !important;
+  }
+  .register-responsive-step-row {
+    margin-bottom: 18px !important;
+    gap: 2px !important;
+  }
+  .register-responsive-step-dot {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 11px !important;
+  }
+  .register-responsive-primary-btn, 
+  .register-responsive-back-btn {
+    font-size: 15px !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .register-responsive-input input {
+    padding: 10px 10px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+  .register-responsive-error {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  .register-responsive-switch-text {
+    font-size: 13px !important;
+  }
+}
+`
+
+
+const styles = {
+  wrapper: {
+    minHeight: '100vh',
+    background: '#FAFAFA',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+    position: 'relative',
+    fontFamily: "'Nunito',sans-serif"
+  },
+  bgGlow: { position: 'fixed', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse,rgba(79,142,247,0.1) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 },
+  bgGrid: { position: 'fixed', inset: 0, backgroundImage: 'linear-gradient(rgba(0,0,0,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.03) 1px,transparent 1px)', backgroundSize: '40px 40px', pointerEvents: 'none', zIndex: 0 },
+  card: {
+    position: 'relative', zIndex: 10, background: '#ffffff', border: '1px solid #E4E4E7',
+    borderRadius: 28, padding: '44px 40px', width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.06)'
+  },
+  logo: { fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif", marginBottom: 28, cursor: 'pointer', letterSpacing: '-0.5px' },
+  stepRow: { display: 'flex', alignItems: 'center', gap: 4, marginBottom: 28 },
+  stepDot: { width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, transition: 'all 0.3s' },
+  title: { fontSize: 26, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: '#09090B', marginBottom: 8, letterSpacing: '-0.5px' },
+  sub: { fontSize: 14, color: '#71717A', lineHeight: 1.6, marginBottom: 24 },
+  primaryBtn: { width: '100%', padding: '14px', background: '#09090B', border: 'none', color: '#fff', borderRadius: 14, fontSize: 16, fontWeight: 800, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
+  backBtn: { width: '100%', padding: '12px', background: 'transparent', border: '1.5px solid #E4E4E7', color: '#71717A', borderRadius: 14, fontSize: 15, fontWeight: 700, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', marginBottom: 12 },
+  eyeBtn: { position: 'absolute', right: 14, bottom: 28, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
+  switchText: { textAlign: 'center', fontSize: 14, color: '#71717A' },
+}
+
+// ------- MAIN COMPONENT -------
 export default function RegisterPage() {
-  const { setUser, setProfile } = useAuthStore() 
-  
+  const { setUser, setProfile } = useAuthStore()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
-
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -21,9 +107,6 @@ export default function RegisterPage() {
   })
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
-
-
-
   const calcAge = (dob) => {
     const today = new Date()
     const birth = new Date(dob)
@@ -32,7 +115,6 @@ export default function RegisterPage() {
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
     return age
   }
-
   const handleStep1 = () => {
     setError('')
     if (!form.fullName.trim()) return setError('Please enter your full name.')
@@ -40,88 +122,90 @@ export default function RegisterPage() {
     if (form.password.length < 6) return setError('Password must be at least 6 characters.')
     setStep(2)
   }
-
   const navigate = useNavigate()
-
-const handleRegister = async () => {
-    console.log('handleRegister called')
-  console.log('form data:', form)
-  setError('')
-  if (!form.dateOfBirth) return setError('Date of birth is required.')
-  const age = calcAge(form.dateOfBirth)
-  if (age < 10) return setError('You must be at least 10 years old to join.')
-  if (age > 100) return setError('Please enter a valid date of birth.')
-
-  setLoading(true)
-console.log('calling signUp...') // ← ADD
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: {
-          full_name: form.fullName,
-          date_of_birth: form.dateOfBirth,
-        }
+  const handleRegister = async () => {
+    setError('')
+    if (!form.dateOfBirth) return setError('Date of birth is required.')
+    const age = calcAge(form.dateOfBirth)
+    if (age < 10) return setError('You must be at least 10 years old to join.')
+    if (age > 100) return setError('Please enter a valid date of birth.')
+    setLoading(true)
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { full_name: form.fullName, date_of_birth: form.dateOfBirth } }
+      })
+      if (error) throw error
+      if (!data.session) {
+        setError('Check your email for verification.')
+        return
       }
-    })
-      console.log('signUp response:', data, error) // ← ADD
-
-    if (error) throw error
-    if (!data.session) {
-      setError('Check your email for verification.')
-      return
+      setUser(data.session.user)
+      setProfile(null)
+      navigate('/profile-setup', { replace: true })
+    } catch (err) {
+      if (err.message.includes('already registered')) {
+        setError('Email already registered.')
+      } else {
+        setError(err.message)
+      }
+    } finally {
+      setLoading(false)
     }
-
-    // ✅ FIX: Store manually set karo PEHLE, phir navigate karo
-    // Isse ProtectedRoute ko loading wait nahi karni padegi
-    setUser(data.session.user)
-    setProfile(null) // profile abhi nahi bani
-    
-    navigate('/profile-setup', { replace: true })
-
-  } catch (err) {
-    if (err.message.includes('already registered')) {
-      setError('Email already registered.')
-    } else {
-      setError(err.message)
-    }
-  } finally {
-    setLoading(false)
   }
-}
 
   return (
     <div style={styles.wrapper}>
       <style>{fonts}</style>
+      <style>{responsiveCSS}</style>
       <div style={styles.bgGlow} />
       <div style={styles.bgGrid} />
+      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+        style={styles.card} className="register-responsive-card">
 
-      <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={styles.card}>
-        <div style={styles.logo} onClick={() => window.location.href = '/'}>
+        <div style={styles.logo} className="register-responsive-logo"
+          onClick={() => window.location.href = '/'}>
           <span style={{ color: '#4F8EF7' }}>Edu</span>
           <span style={{ color: '#FF6B9D' }}>AI</span>
           <span style={{ color: '#09090B' }}>Quest</span>
         </div>
-
-        <div style={styles.stepRow}>
+        <div style={styles.stepRow} className="register-responsive-step-row">
           {[1, 2].map(n => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ ...styles.stepDot, background: step >= n ? '#4F8EF7' : '#E4E4E7', color: step >= n ? '#fff' : '#A1A1AA' }}>{n}</div>
-              <span style={{ fontSize: 12, color: step >= n ? '#4F8EF7' : '#A1A1AA', fontWeight: 600 }}>
+              <div style={{
+                ...styles.stepDot,
+              }} className="register-responsive-step-dot"
+                style={{
+                  ...styles.stepDot,
+                  background: step >= n ? '#4F8EF7' : '#E4E4E7',
+                  color: step >= n ? '#fff' : '#A1A1AA'
+                }}>
+                {n}
+              </div>
+              <span style={{
+                fontSize: 12,
+                color: step >= n ? '#4F8EF7' : '#A1A1AA',
+                fontWeight: 600
+              }}>
                 {n === 1 ? 'Account' : 'Your Age'}
               </span>
-              {n < 2 && <div style={{ width: 32, height: 1, background: step > n ? '#4F8EF7' : '#E4E4E7', margin: '0 6px' }} />}
+              {n < 2 && (
+                <div style={{
+                  width: 32,
+                  height: 1,
+                  background: step > n ? '#4F8EF7' : '#E4E4E7',
+                  margin: '0 6px'
+                }} />
+              )}
             </div>
           ))}
         </div>
-
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div key="step1" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}>
-              <h2 style={styles.title}>Create account</h2>
-              <p style={styles.sub}>Join EduAIQuest and start your learning quest.</p>
-
+              <h2 style={styles.title} className="register-responsive-title">Create account</h2>
+              <p style={styles.sub} className="register-responsive-sub">Join EduAIQuest and start your learning quest.</p>
               <Input label="Full Name" placeholder="Ahmed Raza" value={form.fullName}
                 onChange={v => set('fullName', v)} type="text" />
               <Input label="Email" placeholder="ahmed@example.com" value={form.email}
@@ -133,52 +217,54 @@ console.log('calling signUp...') // ← ADD
                   {showPass ? <EyeOff size={16} color="#A1A1AA" /> : <Eye size={16} color="#A1A1AA" />}
                 </button>
               </div>
-
               <AnimatePresence>{error && <ErrorMsg msg={error} />}</AnimatePresence>
-
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={handleStep1} style={styles.primaryBtn}>
+                onClick={handleStep1} style={styles.primaryBtn} className="register-responsive-primary-btn">
                 Continue <ArrowRight size={16} />
               </motion.button>
             </motion.div>
           )}
-
           {step === 2 && (
             <motion.div key="step2" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}>
-              <h2 style={styles.title}>When were you born?</h2>
-              <p style={styles.sub}>
+              <h2 style={styles.title} className="register-responsive-title">When were you born?</h2>
+              <p style={styles.sub} className="register-responsive-sub">
                 This determines your learning mode. <span style={{ color: '#FF6B9D', fontWeight: 700 }}>Age 10–15</span> → Kids | <span style={{ color: '#4F8EF7', fontWeight: 700 }}>Age 16+</span> → Pro
               </p>
-
               <Input label="Date of Birth" placeholder="" value={form.dateOfBirth}
                 onChange={v => set('dateOfBirth', v)} type="date" />
-
               {form.dateOfBirth && (() => {
                 const age = calcAge(form.dateOfBirth)
                 const isKids = age >= 10 && age <= 15
                 const isPro = age >= 16
                 return (
                   <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                    style={{ background: isKids ? '#FDF2F8' : isPro ? '#EFF6FF' : '#FEF2F2', border: `1px solid ${isKids ? '#FBCFE8' : isPro ? '#BFDBFE' : '#FECACA'}`, borderRadius: 12, padding: '12px 16px', fontSize: 13, fontWeight: 700, color: isKids ? '#DB2777' : isPro ? '#1D4ED8' : '#DC2626', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    style={{
+                      background: isKids ? '#FDF2F8' : isPro ? '#EFF6FF' : '#FEF2F2',
+                      border: `1px solid ${isKids ? '#FBCFE8' : isPro ? '#BFDBFE' : '#FECACA'}`,
+                      borderRadius: 12, padding: '12px 16px', fontSize: 13,
+                      fontWeight: 700, color: isKids ? '#DB2777' : isPro ? '#1D4ED8' : '#DC2626',
+                      marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8
+                    }}>
                     {isPro ? '💼' : isKids ? '🎮' : '⚠️'}
                     {isPro ? `Age ${age} — You'll enter Pro Career Mode` : isKids ? `Age ${age} — You'll enter Kids Adventure Mode` : `Age ${age} — Must be between 10 and 100`}
                   </motion.div>
                 )
               })()}
-
               <AnimatePresence>{error && <ErrorMsg msg={error} />}</AnimatePresence>
-
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={handleRegister} disabled={loading} style={{ ...styles.primaryBtn, opacity: loading ? 0.7 : 1 }}>
+                onClick={handleRegister} disabled={loading}
+                style={{ ...styles.primaryBtn, opacity: loading ? 0.7 : 1 }}
+                className="register-responsive-primary-btn">
                 {loading ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating account...</> : <>Create Account 🎓</>}
               </motion.button>
-
-              <button onClick={() => setStep(1)} style={styles.backBtn}>← Back</button>
+              <button onClick={() => setStep(1)}
+                style={styles.backBtn} className="register-responsive-back-btn">
+                ← Back
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
-
-        <p style={styles.switchText}>
+        <p style={styles.switchText} className="register-responsive-switch-text">
           Already have an account? <Link to="/login" style={{ color: '#4F8EF7', fontWeight: 700, textDecoration: 'none' }}>Log in</Link>
         </p>
       </motion.div>
@@ -189,10 +275,21 @@ console.log('calling signUp...') // ← ADD
 
 function Input({ label, value, onChange, type, placeholder }) {
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 16 }} className="register-responsive-input">
       <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 6 }}>{label}</label>
       <input value={value} onChange={e => onChange(e.target.value)} type={type} placeholder={placeholder}
-        style={{ width: '100%', padding: '12px 14px', border: '1.5px solid #E4E4E7', borderRadius: 12, fontSize: 15, fontFamily: "'Nunito',sans-serif", outline: 'none', color: '#09090B', background: '#FAFAFA', transition: 'border-color 0.2s' }}
+        style={{
+          width: '100%',
+          padding: '12px 14px',
+          border: '1.5px solid #E4E4E7',
+          borderRadius: 12,
+          fontSize: 15,
+          fontFamily: "'Nunito',sans-serif",
+          outline: 'none',
+          color: '#09090B',
+          background: '#FAFAFA',
+          transition: 'border-color 0.2s'
+        }}
         onFocus={e => e.target.style.borderColor = '#4F8EF7'}
         onBlur={e => e.target.style.borderColor = '#E4E4E7'}
       />
@@ -203,26 +300,19 @@ function Input({ label, value, onChange, type, placeholder }) {
 function ErrorMsg({ msg }) {
   return (
     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-      style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 14 }}>
+      style={{
+        background: '#FEF2F2',
+        border: '1px solid #FECACA',
+        borderRadius: 10,
+        padding: '10px 14px',
+        fontSize: 13,
+        color: '#DC2626',
+        fontWeight: 600,
+        marginBottom: 14
+      }}
+      className="register-responsive-error"
+    >
       ⚠️ {msg}
     </motion.div>
   )
-}
-
-const fonts = `@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Syne:wght@700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}`
-
-const styles = {
-  wrapper: { minHeight: '100vh', background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', fontFamily: "'Nunito',sans-serif" },
-  bgGlow: { position: 'fixed', top: '30%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse,rgba(79,142,247,0.1) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 },
-  bgGrid: { position: 'fixed', inset: 0, backgroundImage: 'linear-gradient(rgba(0,0,0,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.03) 1px,transparent 1px)', backgroundSize: '40px 40px', pointerEvents: 'none', zIndex: 0 },
-  card: { position: 'relative', zIndex: 10, background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 28, padding: '44px 40px', width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.06)' },
-  logo: { fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif", marginBottom: 28, cursor: 'pointer', letterSpacing: '-0.5px' },
-  stepRow: { display: 'flex', alignItems: 'center', gap: 4, marginBottom: 28 },
-  stepDot: { width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, transition: 'all 0.3s' },
-  title: { fontSize: 26, fontWeight: 800, fontFamily: "'Syne',sans-serif", color: '#09090B', marginBottom: 8, letterSpacing: '-0.5px' },
-  sub: { fontSize: 14, color: '#71717A', lineHeight: 1.6, marginBottom: 24 },
-  primaryBtn: { width: '100%', padding: '14px', background: '#09090B', border: 'none', color: '#fff', borderRadius: 14, fontSize: 16, fontWeight: 800, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
-  backBtn: { width: '100%', padding: '12px', background: 'transparent', border: '1.5px solid #E4E4E7', color: '#71717A', borderRadius: 14, fontSize: 15, fontWeight: 700, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', marginBottom: 12 },
-  eyeBtn: { position: 'absolute', right: 14, bottom: 28, background: 'none', border: 'none', cursor: 'pointer', padding: 0 },
-  switchText: { textAlign: 'center', fontSize: 14, color: '#71717A' },
 }

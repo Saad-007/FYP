@@ -169,20 +169,49 @@ export default function KidMissionPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAFA', fontFamily: "'Nunito',sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800;900&family=DM+Mono:wght@500;600&display=swap');`}</style>
+      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800;900&family=DM+Mono:wght@500;600&display=swap');
+        
+        /* Responsive Overrides */
+        @media (max-width: 768px) {
+          .top-bar-container { padding: 0 12px !important; gap: 8px !important; }
+          .top-bar-subtitle { display: none !important; } /* Hide extra text on mobile */
+          .top-bar-title { font-size: 14px !important; }
+          .top-bar-back-btn { padding: 6px 10px !important; font-size: 12px !important; gap: 4px !important; }
+          .top-bar-xp { padding: 6px 10px !important; font-size: 11px !important; gap: 4px !important; }
+          
+          .main-content { padding: 20px 12px 80px !important; }
+          .task-container { padding: 20px 16px !important; border-radius: 24px !important; }
+          
+          .task-header-meta { flex-wrap: wrap; gap: 8px !important; margin-bottom: 16px !important; }
+          .task-xp-badge { margin-left: 0 !important; } /* Stack nicely on very small screens */
+          
+          .instruction-box { flex-direction: column !important; gap: 8px !important; padding: 12px 16px !important; }
+          .instruction-box svg { display: none !important; } /* Hide icon to save space */
+          
+          .progress-strip { flex-wrap: wrap !important; gap: 12px !important; padding: 12px 16px !important; border-radius: 16px !important; }
+        }
+
+        @media (max-width: 480px) {
+          .progress-label-text { display: none !important; } /* Hide 'PROGRESS' text on tiny screens */
+          .progress-strip { gap: 8px !important; justify-content: space-around !important; }
+          .progress-strip span { font-size: 10px !important; }
+        }
+      `}</style>
 
       {/* ── Top Bar ── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, height: 70, display: 'flex', alignItems: 'center', gap: 16, padding: '0 24px', background: 'rgba(250,250,250,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #E4E4E7', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-        <motion.button whileTap={{ scale: 0.93 }} onClick={() => navigate('/kids/dashboard')}
+      <div className="top-bar-container" style={{ position: 'sticky', top: 0, zIndex: 50, height: 70, display: 'flex', alignItems: 'center', gap: 16, padding: '0 24px', background: 'rgba(250,250,250,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #E4E4E7', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+        <motion.button className="top-bar-back-btn" whileTap={{ scale: 0.93 }} onClick={() => navigate('/kids/dashboard')}
           style={{ background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 12, padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#52525B', fontWeight: 800, fontSize: 14, fontFamily: "'Nunito',sans-serif", flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
           <ArrowLeft size={16} strokeWidth={2.5} /> Map
         </motion.button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: '#09090B', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.3px' }}>{zone.label}</div>
-          <div style={{ fontSize: 12, color: '#71717A', fontWeight: 700 }}>Complete all 3 tasks to earn your badge</div>
+          <div className="top-bar-title" style={{ fontSize: 16, fontWeight: 900, color: '#09090B', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.3px' }}>{zone.label}</div>
+          <div className="top-bar-subtitle" style={{ fontSize: 12, color: '#71717A', fontWeight: 700 }}>Complete all 3 tasks to earn your badge</div>
         </div>
         {totalXp > 0 && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+          <motion.div className="top-bar-xp" initial={{ scale: 0 }} animate={{ scale: 1 }}
             style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 12px rgba(217,119,6,0.1)' }}>
             <Star size={14} color="#D97706" fill="#D97706" />
             <span style={{ fontSize: 13, fontWeight: 900, color: '#92400E', fontFamily: "'DM Mono',monospace" }}>+{totalXp} XP Session</span>
@@ -191,7 +220,7 @@ export default function KidMissionPage() {
       </div>
 
       {/* ── Main Content ── */}
-      <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 20px 80px' }}>
+      <div className="main-content" style={{ maxWidth: 780, margin: '0 auto', padding: '32px 20px 80px' }}>
         
         {/* Tab bar */}
         <TaskTabBar activeTask={activeTask} completed={completed} onSelect={(id) => {
@@ -200,17 +229,17 @@ export default function KidMissionPage() {
         }} zoneId={zoneId} />
 
         {/* Task Container */}
-        <motion.div key={activeTask} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+        <motion.div className="task-container" key={activeTask} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
           style={{ background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 32, padding: '32px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)' }}>
 
           {/* Task Header */}
           <div style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div className="task-header-meta" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <div style={{ background: `${meta.color}15`, padding: 10, borderRadius: 14 }}>
                 <DynamicIcon name={meta.icon || meta.badgeIcon} size={22} color={meta.color} strokeWidth={2.5} />
               </div>
               <span style={{ fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.6, color: meta.color }}>{meta.label}</span>
-              <div style={{ marginLeft: 'auto', background: `${meta.color}0D`, border: `1px solid ${meta.color}30`, borderRadius: 99, padding: '6px 14px', fontSize: 12, fontWeight: 900, color: meta.color, fontFamily: "'DM Mono',monospace" }}>+{meta.xp} XP</div>
+              <div className="task-xp-badge" style={{ marginLeft: 'auto', background: `${meta.color}0D`, border: `1px solid ${meta.color}30`, borderRadius: 99, padding: '6px 14px', fontSize: 12, fontWeight: 900, color: meta.color, fontFamily: "'DM Mono',monospace" }}>+{meta.xp} XP</div>
             </div>
             
             <h2 style={{ fontSize: 'clamp(22px,4vw,28px)', fontWeight: 900, color: '#09090B', fontFamily: "'Syne',sans-serif", marginBottom: 16, lineHeight: 1.2, letterSpacing: '-0.5px' }}>
@@ -218,7 +247,7 @@ export default function KidMissionPage() {
             </h2>
             
             {(zone[activeTask]?.instruction || zone[activeTask]?.scenario) && (
-              <div style={{ background: '#FAFAFA', border: '1px solid #E4E4E7', borderRadius: 16, padding: '16px 20px', fontSize: 14, color: '#52525B', lineHeight: 1.6, display: 'flex', gap: 12, fontWeight: 600 }}>
+              <div className="instruction-box" style={{ background: '#FAFAFA', border: '1px solid #E4E4E7', borderRadius: 16, padding: '16px 20px', fontSize: 14, color: '#52525B', lineHeight: 1.6, display: 'flex', gap: 12, fontWeight: 600 }}>
                 <Sparkles size={18} color={meta.color} style={{ flexShrink: 0, marginTop: 2 }} />
                 <span>{zone[activeTask].instruction || zone[activeTask].scenario}</span>
               </div>
@@ -254,8 +283,8 @@ export default function KidMissionPage() {
         </motion.div>
 
         {/* Progress Strip */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 24, padding: '18px 24px', background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 20, boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: 13, fontWeight: 800, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 1 }}>Progress</span>
+        <div className="progress-strip" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 24, padding: '18px 24px', background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 20, boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+          <span className="progress-label-text" style={{ fontSize: 13, fontWeight: 800, color: '#A1A1AA', textTransform: 'uppercase', letterSpacing: 1 }}>Progress</span>
           {ORDER.map(tid => {
             const tMeta = TASK_TYPES.find(t => t.id === tid)
             return (

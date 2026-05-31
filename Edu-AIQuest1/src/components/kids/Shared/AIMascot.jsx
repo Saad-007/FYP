@@ -69,7 +69,7 @@ const ORBIT_DOTS = [
 
 function OrbitDot({ r, size, color, duration, startDeg }) {
   return (
-    <motion.div animate={{ rotate: 360 }} transition={{ duration, repeat: Infinity, ease: 'linear' }}
+    <motion.div className="aria-orbit-layer" animate={{ rotate: 360 }} transition={{ duration, repeat: Infinity, ease: 'linear' }}
       style={{ position: 'absolute', width: r * 2, height: r * 2, borderRadius: '50%', pointerEvents: 'none' }}>
       <div style={{ position: 'absolute', width: size, height: size, borderRadius: '50%', background: color, boxShadow: `0 0 8px ${color}`, top: -size / 2, left: '50%', marginLeft: -size / 2, transform: `rotate(${startDeg}deg) translateY(${-r + size / 2}px) rotate(${-startDeg}deg)` }} />
     </motion.div>
@@ -221,6 +221,7 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
 
   return (
     <>
+      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
       <style>{`
         @keyframes aria-float   { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-12px)} }
         @keyframes aria-tip     { 0%,100%{box-shadow:0 0 10px #6366f1cc,0 0 20px #6366f166;transform:scale(1)} 50%{box-shadow:0 0 18px #6366f1ff,0 0 32px #6366f199;transform:scale(1.3)} }
@@ -229,12 +230,39 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
         @keyframes aria-eq      { 0%,100%{transform:scaleY(.4);opacity:.5} 50%{transform:scaleY(1);opacity:1} }
         @keyframes aria-mouth   { 0%,100%{background:#6366f133;transform:scaleY(1)} 50%{background:#6366f199;transform:scaleY(2.5)} }
         @keyframes aria-status  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.75)} }
+
+        /* Mobile Adjustments for ARIA */
+        @media (max-width: 768px) {
+          .aria-container {
+            bottom: 16px !important;
+            right: 16px !important;
+            transform: scale(0.85); /* Scale down ARIA completely on mobile */
+            transform-origin: bottom right;
+          }
+          .aria-message-box {
+            max-width: 200px !important; /* Smaller chat bubble */
+            padding: 8px 12px !important;
+          }
+          .aria-message-text {
+            font-size: 11px !important;
+          }
+          /* Hide outer ring on mobile to reduce clutter */
+          .aria-outer-ring {
+            display: none !important; 
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .aria-container {
+            transform: scale(0.75); /* Even smaller on tiny screens */
+          }
+        }
       `}</style>
 
-      <div style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, pointerEvents: 'none', fontFamily: "'DM Mono','Courier New',monospace" }}>
+      <div className="aria-container" style={{ position: 'fixed', bottom: 28, right: 28, zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 12, pointerEvents: 'none', fontFamily: "'DM Mono','Courier New',monospace" }}>
 
         <AnimatePresence mode="wait">
-          <motion.div key={msgKey}
+          <motion.div className="aria-message-box" key={msgKey}
             initial={{ opacity: 0, y: 10, scale: 0.88 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.9 }} transition={{ type: 'spring', stiffness: 420, damping: 28 }}
             style={{ pointerEvents: 'auto', background: 'rgba(255,255,255,0.93)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.9)', borderRadius: '16px 16px 4px 16px', padding: '11px 15px', maxWidth: 240, boxShadow: '0 6px 20px rgba(0,0,0,0.07)', position: 'relative' }}
           >
@@ -244,13 +272,14 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
                 {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
               </button>
             </div>
-            <div style={{ fontSize: 11.5, fontWeight: 500, color: '#09090b', lineHeight: 1.55, letterSpacing: '-0.2px' }}>{message}</div>
+            <div className="aria-message-text" style={{ fontSize: 11.5, fontWeight: 500, color: '#09090b', lineHeight: 1.55, letterSpacing: '-0.2px' }}>{message}</div>
           </motion.div>
         </AnimatePresence>
 
         <div style={{ position: 'relative', width: 130, height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
+          {/* Base Rings */}
           {[{ size: 110, color: '#6366f1', dur: 6, dir: 1 }, { size: 128, color: '#06b6d4', dur: 9, dir: -1 }, { size: 146, color: '#8b5cf6', dur: 14, dir: 1 }].map((ring, i) => (
-            <motion.div key={i} animate={{ rotate: ring.dir === 1 ? 360 : -360 }} transition={{ duration: ring.dur, repeat: Infinity, ease: 'linear' }}
+            <motion.div className={i === 2 ? 'aria-outer-ring' : ''} key={i} animate={{ rotate: ring.dir === 1 ? 360 : -360 }} transition={{ duration: ring.dur, repeat: Infinity, ease: 'linear' }}
               style={{ position: 'absolute', width: ring.size, height: ring.size, borderRadius: '50%', border: '1.5px solid transparent', borderTopColor: ring.color, borderRightColor: ring.color + '44', pointerEvents: 'none' }}
             />
           ))}
@@ -258,28 +287,35 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
           {ORBIT_DOTS.map((dot, i) => <OrbitDot key={i} {...dot} />)}
           {particles.map(p => <Particle key={p.id} color={p.color} onDone={() => setParticles(prev => prev.filter(x => x.id !== p.id))} />)}
 
+          {/* Core ARIA Bot */}
           <motion.div
             animate={isSleep ? {} : { y: [0, -11, 0] }} transition={isSleep ? {} : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             whileHover={!isSleep ? { scale: 1.09, y: -4 } : {}} whileTap={{ scale: 0.92 }} onClick={handleBotClick}
             style={{ position: 'relative', zIndex: 10, width: 76, height: 76, borderRadius: 22, background: '#09090b', border: '2px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: isSleep ? '0 8px 20px rgba(0,0,0,0.2)' : `0 14px 34px rgba(0,0,0,0.28),0 0 0 1px #3f3f4633${isActive ? ',0 0 32px #6366f177' : ''}`, opacity: isSleep ? 0.5 : 1, filter: isSleep ? 'saturate(0.2)' : 'none', transition: 'box-shadow 0.3s,opacity 0.5s,filter 0.5s' }}
           >
+            {/* Antenna */}
             <div style={{ position: 'absolute', top: -24, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', animation: 'aria-tip 2s ease-in-out infinite' }} />
               <div style={{ width: 2, height: 14, background: '#3f3f46', borderRadius: 1 }} />
             </div>
 
+            {/* Ears */}
             {[{ s: 'left', style: { left: -10, borderRadius: '3px 2px 2px 3px' } }, { s: 'right', style: { right: -10, borderRadius: '2px 3px 3px 2px' } }].map(ear => (
               <div key={ear.s} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 7, height: 22, background: '#18181b', border: '1.5px solid #27272a', ...ear.style }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 3, height: 3, borderRadius: '50%', background: '#06b6d4', boxShadow: '0 0 5px #06b6d4cc', animation: `aria-earblnk 3s ease-in-out ${ear.s === 'right' ? '1.5s' : '0s'} infinite` }} />
               </div>
             ))}
 
+            {/* Face/Screen */}
             <div style={{ width: 54, height: 34, background: '#000', borderRadius: 8, border: '1.5px solid #1e1e22', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(99,102,241,0.06) 3px,rgba(99,102,241,0.06) 4px)' }} />
               <div style={{ position: 'absolute', left: 0, right: 0, height: 2, zIndex: 3, background: 'linear-gradient(90deg,transparent,#6366f166,#06b6d4aa,#6366f166,transparent)', animation: 'aria-scan 3s linear infinite' }} />
+              
               <div style={{ display: 'flex', gap: 11, alignItems: 'center', position: 'relative', zIndex: 4 }}>
                 <Eye mode={mode} /><Eye mode={mode} />
               </div>
+              
+              {/* Mouth audio waves */}
               <div style={{ position: 'absolute', bottom: 6, zIndex: 4, display: 'flex', gap: 3 }}>
                 {[0, 0.2, 0.4].map((delay, i) => (
                   <div key={i} style={{ width: 2.5, height: 2.5, borderRadius: '50%', background: '#6366f155', animation: `aria-mouth 1.4s ease-in-out ${delay}s infinite` }} />
@@ -287,6 +323,7 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
               </div>
             </div>
 
+            {/* Bottom Audio EQ */}
             <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 3, alignItems: 'flex-end' }}>
               {[{ h: 6, color: '#6366f1', d: 0 }, { h: 10, color: '#06b6d4', d: 0.15 }, { h: 7, color: '#8b5cf6', d: 0.3 }, { h: 11, color: '#06b6d4', d: 0.1 }, { h: 6, color: '#6366f1', d: 0.25 }].map((bar, i) => (
                 <div key={i} style={{ width: 3, height: bar.h, borderRadius: 2, background: bar.color, transformOrigin: 'bottom', animation: `aria-eq 1.2s ease-in-out ${bar.d}s infinite` }} />
@@ -295,6 +332,7 @@ export default function AIMascot({ customMessage, isActive, mode: modeProp = 'id
           </motion.div>
         </div>
 
+        {/* Status Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.85)', borderRadius: 99, padding: '4px 10px', alignSelf: 'center' }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: isSleep ? '#71717a' : '#10b981', boxShadow: isSleep ? 'none' : '0 0 7px #10b981', animation: isSleep ? 'none' : 'aria-status 2s ease-in-out infinite' }} />
           <span style={{ fontSize: 9, fontWeight: 600, color: '#52525b', letterSpacing: 0.5 }}>{STATUS_LABELS[mode] || STATUS_LABELS.idle}</span>

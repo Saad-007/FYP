@@ -13,7 +13,7 @@ import {
   Lock, X, Trophy, CheckCircle2, ChevronRight,
   Sparkles, LogOut, Zap, Map,
   Rocket, Search, Paintbrush, Mic, Puzzle,
-  Award, Compass, ShieldCheck, Diamond, ShoppingBag 
+  Award, Compass, ShieldCheck, Diamond, ShoppingBag
 } from 'lucide-react'
 import AIMascot from '../../components/kids/Shared/AIMascot'
 import LivingMapBackground, { EnergyPulse, XPPopup } from '../../components/kids/Dashboard/LivingMapBackground'
@@ -205,20 +205,21 @@ function ZoneCard({ zone, unlocked, completed, isSelected, completedTasks, onCli
       transition={{ delay: zone.order * 0.06 }}
       onClick={onClick}
       whileHover={unlocked ? { scale: 1.03, y: -2 } : {}}
+      className="zone-card"
       style={{ width: '100%', maxWidth: 230, background: completed ? `${zone.color}08` : isSelected ? `${zone.color}06` : '#ffffff', border: `2px solid ${completed ? zone.color + '44' : isSelected ? zone.color : unlocked ? '#E4E4E7' : '#F4F4F5'}`, borderRadius: 18, padding: '15px', cursor: unlocked ? 'pointer' : 'default', opacity: unlocked ? 1 : 0.42, boxShadow: isSelected ? `0 8px 26px ${zone.glow}` : completed ? `0 4px 16px ${zone.color}14` : '0 2px 10px rgba(0,0,0,0.04)', transition: 'all 0.25s' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: completed ? zone.color : `${zone.color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: completed ? zone.color : `${zone.color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {completed ? <BadgeIcon size={16} color="#fff" /> : <Icon size={15} color={unlocked ? zone.color : '#C4C4C4'} />}
           </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: unlocked ? '#09090B' : '#A1A1AA', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.2px', lineHeight: 1.2 }}>{zone.label}</div>
-            <div style={{ fontSize: 10, color: unlocked ? zone.color : '#D4D4D8', fontWeight: 700 }}>{zone.sublabel}</div>
+          <div style={{ minWidth: 0 }}>
+            <div className="zone-card-label" style={{ fontSize: 12, fontWeight: 900, color: unlocked ? '#09090B' : '#A1A1AA', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.2px', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{zone.label}</div>
+            <div className="zone-card-sub" style={{ fontSize: 10, color: unlocked ? zone.color : '#D4D4D8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{zone.sublabel}</div>
           </div>
         </div>
-        {!unlocked && <Lock size={13} color="#D4D4D8" />}
+        {!unlocked && <Lock size={13} color="#D4D4D8" style={{ flexShrink: 0 }} />}
         {completed && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: 99, padding: '2px 7px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#D1FAE5', border: '1px solid #6EE7B7', borderRadius: 99, padding: '2px 7px', flexShrink: 0 }}>
             <CheckCircle2 size={10} color="#065F46" /><span style={{ fontSize: 9, fontWeight: 800, color: '#065F46' }}>DONE</span>
           </div>
         )}
@@ -227,8 +228,8 @@ function ZoneCard({ zone, unlocked, completed, isSelected, completedTasks, onCli
         {TASK_TYPES.map(t => <div key={t.id} style={{ height: 5, flex: 1, borderRadius: 99, background: completedTasks.includes(`${zone.id}_${t.id}`) ? zone.color : unlocked ? '#E4E4E7' : '#F4F4F5', transition: 'background 0.3s' }} />)}
         <span style={{ fontSize: 9, color: '#A1A1AA', fontWeight: 700, fontFamily: "'DM Mono',monospace", flexShrink: 0 }}>{tasksDone}/3</span>
       </div>
-      {unlocked && !completed && <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 3, color: zone.color }}><ChevronRight size={12} /><span style={{ fontSize: 10, fontWeight: 800 }}>Tap to open</span></div>}
-      {completed && <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 3, color: '#10b981' }}><CheckCircle2 size={12} /><span style={{ fontSize: 10, fontWeight: 800 }}>+{ZONE_XP} XP earned</span></div>}
+      {unlocked && !completed && <div className="zone-card-cta" style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 3, color: zone.color }}><ChevronRight size={12} /><span style={{ fontSize: 10, fontWeight: 800 }}>Tap to open</span></div>}
+      {completed && <div className="zone-card-cta" style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 3, color: '#10b981' }}><CheckCircle2 size={12} /><span style={{ fontSize: 10, fontWeight: 800 }}>+{ZONE_XP} XP earned</span></div>}
     </motion.div>
   )
 }
@@ -244,7 +245,7 @@ export default function KidsDashboard() {
   const [completedTasks, setCompletedTasks] = useState([])
   const [xp, setXp]                         = useState(0)
   const [level, setLevel]                   = useState(1)
-  const [streak]                            = useState(5) // Using state variable for streak!
+  const [streak]                            = useState(5)
 
   // ── ARIA State ──
   const [ariaMode, setAriaMode] = useState('idle')
@@ -262,9 +263,7 @@ export default function KidsDashboard() {
   const [activeTheme, setActiveTheme] = useState(null)
 
   // ── Leaderboard
-const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
-// Kids-Profile
-
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
 
   const nodeRefs = useRef({})
   const xpInLevel = xp % XP_PER_LEVEL
@@ -275,7 +274,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
   const themeColor = activeTheme ? activeTheme.color : '#3B82F6'
 
   // Determine if streak is "hot"
-  const isHotStreak = streak >= 3;
+  const isHotStreak = streak >= 3
 
   // =========================================================================
   // 1. UTILITY FUNCTIONS
@@ -310,7 +309,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
       const newOwned = [...ownedItems, item.id]
       setGems(newGems)
       setOwnedItems(newOwned)
-      if(profile) saveShopProgress(newGems, newOwned, activeFrame, activeTheme, profile.id)
+      if (profile) saveShopProgress(newGems, newOwned, activeFrame, activeTheme, profile.id)
       triggerAria('happy', `Awesome! You bought ${item.name}! 💎`, 4000)
     }
   }, [gems, ownedItems, activeFrame, activeTheme, profile, saveShopProgress, triggerAria])
@@ -326,8 +325,8 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
       newTheme = item
       setActiveTheme(item)
     }
-    
-    if(profile) saveShopProgress(gems, ownedItems, newFrame, newTheme, profile.id)
+
+    if (profile) saveShopProgress(gems, ownedItems, newFrame, newTheme, profile.id)
     triggerAria('idle', `${item.name} equipped! Looking sharp! ✨`, 3000)
   }, [activeFrame, activeTheme, gems, ownedItems, profile, saveShopProgress, triggerAria])
 
@@ -376,7 +375,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
         if (!session?.user) return navigate('/login')
         const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
         setProfile(data)
-        
+
         const savedProgress = localStorage.getItem(`eduai_progress_${session.user.id}`)
         if (savedProgress) {
           const p = JSON.parse(savedProgress)
@@ -444,6 +443,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800;900&family=DM+Mono:wght@500;600&display=swap');
         * { box-sizing: border-box; }
 
+        /* ── MISSION PANEL ── */
         .mission-panel {
           position: fixed; top: 0; right: 0; bottom: 0; width: 420px;
           background: rgba(255,255,255,0.98); backdrop-filter: blur(24px);
@@ -451,14 +451,12 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
           box-shadow: -24px 0 60px rgba(0,0,0,0.07);
           z-index: 100; padding: 28px 24px; overflow-y: auto;
         }
-        @media (max-width: 700px) {
-          .mission-panel { width: 100%; height: 88vh; top: auto; right: 0; bottom: 0; border-left: none; border-top: 1px solid #E4E4E7; border-radius: 24px 24px 0 0; padding: 20px 18px; box-shadow: 0 -16px 48px rgba(0,0,0,0.12); }
-          .hide-sm { display: none !important; }
-          .roadmap-row { grid-template-columns: 1fr !important; }
-        }
+
+        /* ── SCROLLBAR ── */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #E4E4E7; border-radius: 4px; }
 
+        /* ── HINT BAR ── */
         .hint-bar {
           text-align: center;
           font-size: 12px;
@@ -469,18 +467,113 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
           animation: hint-blink 3s ease-in-out infinite;
         }
         @keyframes hint-blink { 0%,100%{opacity:0.6} 50%{opacity:1} }
-        
-        /* Aag ka animated glow */
+
+        /* ── STREAK ANIMATIONS ── */
         @keyframes flame-glow {
           0% { box-shadow: 0 0 10px #f9731640, inset 0 0 8px #f9731620; border-color: #f97316; }
           50% { box-shadow: 0 0 18px #ef444480, inset 0 0 12px #ef444440; border-color: #ef4444; }
           100% { box-shadow: 0 0 10px #f9731640, inset 0 0 8px #f9731620; border-color: #f97316; }
         }
-        
-        /* Fire emoji ka flicker */
         @keyframes fire-flicker {
           0%, 100% { transform: scale(1) rotate(-5deg); }
           50% { transform: scale(1.15) rotate(5deg); }
+        }
+
+        /* ══════════════════════════════════════
+           MOBILE RESPONSIVE — max-width: 700px
+        ══════════════════════════════════════ */
+        @media (max-width: 700px) {
+
+          /* Mission panel → bottom sheet */
+          .mission-panel {
+            width: 100%;
+            height: 88vh;
+            top: auto;
+            right: 0;
+            bottom: 0;
+            border-left: none;
+            border-top: 1px solid #E4E4E7;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 18px;
+            box-shadow: 0 -16px 48px rgba(0,0,0,0.12);
+          }
+
+          /* Hide text-only desktop labels */
+          .hide-sm { display: none !important; }
+
+          /* ── HUD ── */
+          .hud-right { gap: 6px !important; }
+
+          /* Streak badge — chhota */
+          .streak-badge { padding: 4px 7px !important; }
+          .streak-badge span { font-size: 11px !important; }
+
+          /* XP + gems badges */
+          .xp-badge, .gems-badge { padding: 4px 7px !important; }
+          .xp-badge span, .gems-badge span { font-size: 10px !important; }
+
+          /* Shop button */
+          .shop-btn { padding: 6px 9px !important; font-size: 11px !important; }
+
+          /* Avatar */
+          .avatar-btn { width: 30px !important; height: 30px !important; font-size: 12px !important; }
+
+          /* ── ROADMAP — 3-col grid maintain, center map stays centered ── */
+          .roadmap-row {
+            grid-template-columns: 1fr 56px 1fr !important;
+            padding: 10px 0 !important;
+          }
+
+          /* Zone circle chhota */
+          .roadmap-row .zone-circle-wrap {
+            width: 56px !important;
+            height: 56px !important;
+          }
+
+          /* Zone cards compact */
+          .zone-card {
+            max-width: 100% !important;
+            padding: 10px 9px !important;
+            border-radius: 14px !important;
+          }
+          .zone-card-label { font-size: 10px !important; }
+          .zone-card-sub   { font-size: 9px !important; }
+          .zone-card-cta   { display: none !important; }
+
+          /* ── LEADERBOARD BANNER ── */
+          .leaderboard-banner {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+            padding: 14px 16px !important;
+          }
+          .leaderboard-banner-btn {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+
+          /* ── OVERALL PROGRESS ── */
+          .progress-zones { gap: 3px !important; }
+
+          /* ── BOTTOM STATS: 3-col → 2+1 ── */
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+
+          /* ── TITLE AREA ── */
+          .roadmap-title h1 { font-size: 22px !important; }
+
+          /* ── MAP CONTENT padding ── */
+          .map-content { padding: 18px 14px 80px !important; }
+        }
+
+        /* Extra small — 400px se chhota */
+        @media (max-width: 400px) {
+          .roadmap-row {
+            grid-template-columns: 1fr 48px 1fr !important;
+          }
+          .hud-right { gap: 4px !important; }
+          .gems-badge { display: none !important; }
         }
       `}</style>
 
@@ -512,7 +605,8 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
 
       {/* ── TOP HUD ── */}
       <div style={{ position: 'sticky', top: 0, zIndex: 50, height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px', background: 'rgba(255,255,255,0.93)', backdropFilter: 'blur(20px)', borderBottom: '1px solid #E4E4E7', gap: 14 }}>
-        
+
+        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexShrink: 0 }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: themeColor, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.3s' }}>
             <Navigation size={16} color="#fff" />
@@ -522,6 +616,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
           </span>
         </div>
 
+        {/* XP Bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1, maxWidth: 480 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 7, padding: '4px 9px', flexShrink: 0 }}>
             <Star size={12} color="#D97706" fill="#D97706" />
@@ -536,57 +631,64 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
           <span className="hide-sm" style={{ fontSize: 11, color: '#71717A', fontWeight: 700, fontFamily: "'DM Mono',monospace", whiteSpace: 'nowrap' }}>{xpInLevel}/{XP_PER_LEVEL}</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          
-          {/* ── NAYA AAA GAMIFIED STREAK BADGE ── */}
-          <div style={{ 
-            display: 'flex', alignItems: 'center', gap: 6, 
-            background: isHotStreak ? '#FFF7ED' : '#F4F4F5', 
-            border: `1.5px solid ${isHotStreak ? '#F97316' : '#E4E4E7'}`, 
+        {/* Right actions */}
+        <div className="hud-right" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+
+          {/* Streak Badge */}
+          <div className="streak-badge" style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: isHotStreak ? '#FFF7ED' : '#F4F4F5',
+            border: `1.5px solid ${isHotStreak ? '#F97316' : '#E4E4E7'}`,
             borderRadius: 8, padding: '4px 10px',
             animation: isHotStreak ? 'flame-glow 1.5s infinite alternate ease-in-out' : 'none'
           }}>
-            <div style={{ 
-              fontSize: 14, 
+            <div style={{
+              fontSize: 14,
               animation: isHotStreak ? 'fire-flicker 0.8s infinite' : 'none',
               filter: isHotStreak ? 'drop-shadow(0 2px 4px rgba(239,68,68,0.4))' : 'grayscale(100%)'
-            }}>
-              🔥
-            </div>
-            <span style={{ 
+            }}>🔥</div>
+            <span style={{
               fontSize: 12, fontWeight: 900, fontFamily: "'DM Mono',monospace",
-              color: isHotStreak ? '#EA580C' : '#A1A1AA' 
+              color: isHotStreak ? '#EA580C' : '#A1A1AA'
             }}>
               {streak} {isHotStreak ? 'HOT!' : 'Days'}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '4px 9px' }}>
-            <Trophy size={11} color="#10b981" /><span style={{ fontSize: 11, fontWeight: 800, color: '#10b981', fontFamily: "'DM Mono',monospace" }}>{xp}XP</span>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 7, padding: '4px 9px' }}>
-            <Diamond size={11} color="#8B5CF6" fill="#8B5CF6" /><span style={{ fontSize: 11, fontWeight: 800, color: '#6D28D9', fontFamily: "'DM Mono',monospace" }}>{gems}</span>
+          {/* XP Badge */}
+          <div className="xp-badge" style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 7, padding: '4px 9px' }}>
+            <Trophy size={11} color="#10b981" />
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#10b981', fontFamily: "'DM Mono',monospace" }}>{xp}XP</span>
           </div>
 
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsShopOpen(true)}
+          {/* Gems Badge */}
+          <div className="gems-badge" style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F5F3FF', border: '1px solid #DDD6FE', borderRadius: 7, padding: '4px 9px' }}>
+            <Diamond size={11} color="#8B5CF6" fill="#8B5CF6" />
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#6D28D9', fontFamily: "'DM Mono',monospace" }}>{gems}</span>
+          </div>
+
+          {/* Shop Button */}
+          <motion.button className="shop-btn" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setIsShopOpen(true)}
             style={{ background: '#8B5CF6', border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 12, boxShadow: '0 4px 10px rgba(139,92,246,0.3)' }}>
-            <ShoppingBag size={14} /> Shop
+            <ShoppingBag size={14} /> <span className="hide-sm">Shop</span>
           </motion.button>
 
-          <div 
-          onClick={() => navigate('/kids/profile', { 
-    state: { profile, xp, level, streak, gems, completedTasks, activeFrame } 
-  })}
-          style={{ 
-            width: 34, height: 34, borderRadius: '50%', background: '#09090B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#fff', cursor: 'pointer',
-            border: activeFrame ? `2.5px solid ${activeFrame.color}` : '2.5px solid transparent',
-            boxShadow: activeFrame ? activeFrame.shadow : 'none',
-            transition: 'all 0.3s'
-          }}>
+          {/* Avatar */}
+          <div
+            className="avatar-btn"
+            onClick={() => navigate('/kids/profile', {
+              state: { profile, xp, level, streak, gems, completedTasks, activeFrame }
+            })}
+            style={{
+              width: 34, height: 34, borderRadius: '50%', background: '#09090B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#fff', cursor: 'pointer',
+              border: activeFrame ? `2.5px solid ${activeFrame.color}` : '2.5px solid transparent',
+              boxShadow: activeFrame ? activeFrame.shadow : 'none',
+              transition: 'all 0.3s'
+            }}>
             {(profile?.username || 'U')[0].toUpperCase()}
           </div>
-          
+
+          {/* Logout */}
           <motion.button whileTap={{ scale: 0.9 }} onClick={handleLogout}
             style={{ background: '#F4F4F5', border: 'none', borderRadius: 8, padding: 7, cursor: 'pointer', color: '#71717A', display: 'flex' }}>
             <LogOut size={14} />
@@ -595,10 +697,11 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
       </div>
 
       {/* ── MAP CONTENT ── */}
-      <div style={{ maxWidth: 740, margin: '0 auto', padding: '24px 20px 80px', position: 'relative', zIndex: 10 }}>
+      <div className="map-content" style={{ maxWidth: 740, margin: '0 auto', padding: '24px 20px 80px', position: 'relative', zIndex: 10 }}>
 
         {/* ── LEADERBOARD WIDGET ── */}
         <motion.div
+          className="leaderboard-banner"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
@@ -618,31 +721,32 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
         >
           <div style={{ position: 'absolute', top: -50, right: -50, width: 150, height: 150, background: 'radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, zIndex: 1 }}>
-            <div style={{ background: 'linear-gradient(135deg, #FBBF24, #D97706)', padding: 12, borderRadius: 16, boxShadow: '0 4px 12px rgba(251,191,36,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, zIndex: 1, flex: 1, minWidth: 0 }}>
+            <div style={{ background: 'linear-gradient(135deg, #FBBF24, #D97706)', padding: 12, borderRadius: 16, boxShadow: '0 4px 12px rgba(251,191,36,0.3)', flexShrink: 0 }}>
               <Trophy size={28} color="#ffffff" strokeWidth={2.5} />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 12, color: '#A5B4FC', fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 }}>
                 Weekly Leaderboard
               </div>
-              <div style={{ fontSize: 16, color: '#ffffff', fontWeight: 800, fontFamily: "'Syne', sans-serif" }}>
-                You're in the <span style={{ color: '#FCD34D', fontWeight: 900, textShadow: '0 0 10px rgba(251,191,36,0.5)' }}>Top 10%</span> of Explorers! 🚀
+              <div style={{ fontSize: 16, color: '#ffffff', fontWeight: 800, fontFamily: "'Syne', sans-serif", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                You're in the <span style={{ color: '#FCD34D', fontWeight: 900 }}>Top 10%</span> 🚀
               </div>
             </div>
           </div>
 
-          <motion.button 
+          <motion.button
+            className="leaderboard-banner-btn"
             whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-            onClick={() => setIsLeaderboardOpen(true)} 
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 14, padding: '10px 16px', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, backdropFilter: 'blur(4px)', zIndex: 1 }}
+            onClick={() => setIsLeaderboardOpen(true)}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 14, padding: '10px 16px', color: '#fff', fontSize: 13, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, backdropFilter: 'blur(4px)', zIndex: 1, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             View Ranks <ChevronRight size={16} strokeWidth={3} />
           </motion.button>
         </motion.div>
 
-        {/* Title */}
-        <motion.div initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 36 }}>
+        {/* ── TITLE ── */}
+        <motion.div className="roadmap-title" initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 99, padding: '5px 14px', marginBottom: 14 }}>
             <Map size={13} color={themeColor} style={{ transition: 'color 0.3s' }} />
             <span style={{ fontSize: 11, fontWeight: 800, color: themeColor, textTransform: 'uppercase', letterSpacing: 1.2, transition: 'color 0.3s' }}>AI Learning Roadmap</span>
@@ -663,7 +767,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
         {/* Easter egg hint */}
         <div className="hint-bar">✦ hidden stars &amp; bugs are scattered around — find them for bonus gems! ✦</div>
 
-        {/* Overall progress */}
+        {/* ── OVERALL PROGRESS ── */}
         <div style={{ background: '#ffffff', border: '1px solid #E4E4E7', borderRadius: 18, padding: '16px 20px', marginBottom: 40, boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
             <span style={{ fontSize: 13, fontWeight: 800, color: '#09090B' }}>Overall Roadmap Progress</span>
@@ -673,7 +777,7 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
             <motion.div animate={{ width: `${(completedZonesCount / 8) * 100}%` }} transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
               style={{ height: '100%', borderRadius: 99, background: `linear-gradient(90deg, ${themeColor}, #8b5cf6, #ec4899, #f59e0b, #ef4444)`, transition: 'background 0.3s' }} />
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="progress-zones" style={{ display: 'flex', gap: 6 }}>
             {ZONES_LIST.map(z => (
               <div key={z.id} title={z.label} style={{ flex: 1, height: 8, borderRadius: 99, background: zoneComplete(z.id, completedTasks) ? z.color : '#F4F4F5', border: `1px solid ${zoneComplete(z.id, completedTasks) ? z.color : '#E4E4E7'}`, transition: 'background 0.4s' }} />
             ))}
@@ -695,11 +799,15 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
               return (
                 <div key={zone.id}>
                   <div className="roadmap-row" style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr', alignItems: 'center', padding: '18px 0' }}>
+
+                    {/* Left column */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', paddingRight: 18 }}>
                       {zone.side === 'left'
                         ? <ZoneCard zone={zone} unlocked={unlocked} completed={completed} isSelected={isSelected} completedTasks={completedTasks} onClick={() => toggleZone(zone)} />
                         : <div style={{ height: 3, width: '60%', background: unlocked ? `linear-gradient(270deg,${zone.color}44,transparent)` : '#F4F4F5', borderRadius: 99, alignSelf: 'center' }} />}
                     </div>
+
+                    {/* Center — zone circle */}
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <ZoneCircle
                         zone={zone} unlocked={unlocked} completed={completed}
@@ -708,19 +816,20 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
                         nodeRef={el => { nodeRefs.current[zone.id] = el }}
                       />
                     </div>
+
+                    {/* Right column */}
                     <div style={{ paddingLeft: 18 }}>
                       {zone.side === 'right'
                         ? <ZoneCard zone={zone} unlocked={unlocked} completed={completed} isSelected={isSelected} completedTasks={completedTasks} onClick={() => toggleZone(zone)} />
                         : <div style={{ height: 3, width: '60%', background: unlocked ? `linear-gradient(90deg,${zone.color}44,transparent)` : '#F4F4F5', borderRadius: 99, alignSelf: 'center' }} />}
                     </div>
                   </div>
+
                   {/* Animated connector between zones */}
                   {!isLast && (
                     <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', zIndex: 5, margin: '-4px 0' }}>
                       <div style={{ position: 'relative', width: 3, height: 36 }}>
-                        {/* Static track */}
                         <div style={{ position: 'absolute', inset: 0, background: '#F4F4F5', borderRadius: 99 }} />
-                        {/* Pulse beam — always on for unlocked */}
                         {zoneUnlocked(ZONES_LIST[index + 1], completedTasks) && (
                           <motion.div
                             animate={{ scaleY: [0, 1], originY: 0, opacity: [1, 0] }}
@@ -737,8 +846,10 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
           </div>
         </div>
 
-        {/* Bottom stats */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        {/* ── BOTTOM STATS ── */}
+        <motion.div
+          className="stats-grid"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14, marginTop: 52 }}>
           {[
             { label: 'Zones Complete', value: `${completedZonesCount}/8`, Icon: Compass, color: themeColor },
@@ -772,23 +883,24 @@ const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false)
       <AIMascot mode={ariaMode} customMessage={ariaMsg} isActive={!!selectedZone} />
 
       {/* ── SHOP MODAL ── */}
-      <KidsShop 
-        isOpen={isShopOpen} 
-        onClose={() => setIsShopOpen(false)} 
-        gems={gems} 
-        onBuy={handleBuyItem} 
-        ownedItems={ownedItems} 
-        activeFrame={activeFrame} 
-        activeTheme={activeTheme} 
+      <KidsShop
+        isOpen={isShopOpen}
+        onClose={() => setIsShopOpen(false)}
+        gems={gems}
+        onBuy={handleBuyItem}
+        ownedItems={ownedItems}
+        activeFrame={activeFrame}
+        activeTheme={activeTheme}
         onEquip={handleEquipItem}
       />
+
       {/* ── LEADERBOARD MODAL ── */}
-      <LeaderboardModal 
-        isOpen={isLeaderboardOpen} 
-        onClose={() => setIsLeaderboardOpen(false)} 
-        profile={profile} 
-        currentXp={xp} 
-        currentStreak={streak} 
+      <LeaderboardModal
+        isOpen={isLeaderboardOpen}
+        onClose={() => setIsLeaderboardOpen(false)}
+        profile={profile}
+        currentXp={xp}
+        currentStreak={streak}
       />
 
     </div>

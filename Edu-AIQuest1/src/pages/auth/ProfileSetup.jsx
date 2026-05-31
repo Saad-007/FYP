@@ -47,25 +47,79 @@ const NoiseBg = () => (
   }} />
 )
 
+// --- Responsive CSS (media query below 600px) ---
+const responsiveCSS = `
+@media (max-width: 600px) {
+  .profile-setup-responsive-card {
+    padding: 18px 6px !important;
+    max-width: 99vw !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    border-radius: 14px !important;
+  }
+  .profile-setup-responsive-h2 {
+    font-size: 18px !important;
+    margin-bottom: 9px !important;
+  }
+  .profile-setup-responsive-badge {
+    padding: 3px 9px !important;
+    font-size: 11px !important;
+    border-radius: 30px !important;
+  }
+  .profile-setup-responsive-user {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+  }
+  .profile-setup-responsive-input {
+    padding: 10px 14px 10px 30px !important;
+    font-size: 14px !important;
+    border-radius: 9px !important;
+  }
+  .profile-setup-responsive-topics-label {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+  }
+  .profile-setup-responsive-topics-count {
+    font-size: 11px !important;
+  }
+  .profile-setup-responsive-topics-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
+  }
+  .profile-setup-responsive-topic-btn {
+    padding: 10px !important;
+    border-radius: 11px !important;
+    font-size: 12px !important;
+    gap: 8px !important;
+  }
+  .profile-setup-responsive-error {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    border-radius: 7px !important;
+  }
+  .profile-setup-responsive-save-btn {
+    padding: 12px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+    gap: 6px !important;
+  }
+}
+`
+
 export default function ProfileSetup() {
   const navigate = useNavigate()
-  
-  // 🚀 Sirf 1 Loading State (Global)
-  const { user, profile, loading: authLoading, setProfile } = useAuthStore()
 
+  const { user, profile, loading: authLoading, setProfile } = useAuthStore()
   const [username, setUsername] = useState('')
   const [selectedTopics, setSelectedTopics] = useState([])
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
 
-  // 🚀 MAGIC: Derived State (No useEffect needed for age!)
-  // Ye khud ba khud calculate hoga jaise hi user ka data aayega
   const dob = user?.user_metadata?.date_of_birth || profile?.date_of_birth
   const userAge = dob ? calcAge(dob) : 0
   const isKids = userAge >= 10 && userAge <= 15
   const topicsToShow = isKids ? KIDS_TOPICS : PRO_TOPICS
 
-  // Security Check: Agar auth load ho gaya aur user null hai, to wapis Login bhej do
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login', { replace: true })
@@ -76,30 +130,26 @@ export default function ProfileSetup() {
     setSelectedTopics(p => p.includes(id) ? p.filter(t => t !== id) : [...p, id])
   }
 
-const handleSave = async () => {
-    setError('')
-    if (username.trim().length < 3) return setError('Username must be at least 3 characters.')
-    if (selectedTopics.length === 0) return setError('Please select at least one topic.')
+  const handleSave = async () => {
+    setError('')
+    if (username.trim().length < 3) return setError('Username must be at least 3 characters.')
+    if (selectedTopics.length === 0) return setError('Please select at least one topic.')
 
-    setIsSaving(true)
-    try {
-      // 💡 Pro Tip: Agar naya user hai aur profile row abhi exist nahi karti, 
-      // toh .upsert() use karna behtar hai .update() ki jagah.
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({ 
-          id: user.id, // ID dena zaroori hai upsert ke liye
-          username: username.trim(), 
+    setIsSaving(true)
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          username: username.trim(),
           topics: selectedTopics,
-          date_of_birth: dob // date of birth bhi save karlein DB me
-        }) 
+          date_of_birth: dob
+        })
 
-      if (updateError) {
-        if (updateError.message.includes('unique')) throw new Error('Username already taken. Please choose another.')
-        throw updateError
-      }
-      
-      // 🚀 FIX 2: Navigate karne se PEHLE local store update karein
+      if (updateError) {
+        if (updateError.message.includes('unique')) throw new Error('Username already taken. Please choose another.')
+        throw updateError
+      }
       setProfile({
         ...profile,
         id: user.id,
@@ -107,15 +157,13 @@ const handleSave = async () => {
         topics: selectedTopics,
         date_of_birth: dob
       })
-
-      navigate(isKids ? '/kids/dashboard' : '/pro/dashboard')
-    } catch (err) {
-      setError(err.message || 'Failed to save profile.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-  // 🚀 MAIN RENDER BLOCK: Agar App.jsx load kar raha hai, toh loader dikhao
+      navigate(isKids ? '/kids/dashboard' : '/pro/dashboard')
+    } catch (err) {
+      setError(err.message || 'Failed to save profile.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
   if (authLoading) {
     return (
       <div style={{ minHeight: '100vh', background: '#09090B', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
@@ -125,11 +173,8 @@ const handleSave = async () => {
       </div>
     )
   }
-
-  // Agar user ghaib hai, to empty screen dikhao jab tak redirect na ho jaye
   if (!user) return null
 
-  // Theme Variables
   const bgMain = isKids ? '#FAFAFA' : '#000000'
   const cardBg = isKids ? '#ffffff' : '#09090B'
   const textPrimary = isKids ? '#09090B' : '#ffffff'
@@ -139,8 +184,11 @@ const handleSave = async () => {
   const inputBg = isKids ? '#F4F4F5' : '#18181B'
 
   return (
-    <div style={{ minHeight: '100vh', background: bgMain, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', fontFamily: "'Nunito',sans-serif", overflow: 'hidden' }}>
+    <div style={{
+      minHeight: '100vh', background: bgMain, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', position: 'relative', fontFamily: "'Nunito',sans-serif", overflow: 'hidden'
+    }}>
       <NoiseBg />
+      <style>{responsiveCSS}</style>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@500&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -148,53 +196,98 @@ const handleSave = async () => {
         input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px ${inputBg} inset !important; -webkit-text-fill-color: ${textPrimary} !important; }
       `}</style>
 
-      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '80vw', maxWidth: 800, height: 500, background: isKids ? 'radial-gradient(ellipse,rgba(236,72,153,0.08) 0%,transparent 60%)' : 'radial-gradient(ellipse,rgba(59,130,246,0.1) 0%,transparent 60%)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{
+        position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '80vw',
+        maxWidth: 800, height: 500, background: isKids ? 'radial-gradient(ellipse,rgba(236,72,153,0.08) 0%,transparent 60%)' : 'radial-gradient(ellipse,rgba(59,130,246,0.1) 0%,transparent 60%)', pointerEvents: 'none', zIndex: 0
+      }} />
 
-      <motion.div initial={{ y: 30, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{ position: 'relative', zIndex: 10, background: cardBg, border: `1px solid ${borderCol}`, borderRadius: 32, padding: '48px 40px', width: '100%', maxWidth: 580, boxShadow: isKids ? '0 25px 50px rgba(0,0,0,0.04)' : '0 30px 60px rgba(0,0,0,0.4)' }}>
+      <motion.div
+        initial={{ y: 30, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: 'easeOut' }}
+        style={{
+          position: 'relative', zIndex: 10, background: cardBg, border: `1px solid ${borderCol}`,
+          borderRadius: 32, padding: '48px 40px', width: '100%', maxWidth: 580,
+          boxShadow: isKids ? '0 25px 50px rgba(0,0,0,0.04)' : '0 30px 60px rgba(0,0,0,0.4)'
+        }}
+        className="profile-setup-responsive-card"
+      >
 
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }}
-            style={{ width: 64, height: 64, borderRadius: 20, background: isKids ? '#FDF2F8' : '#1E1B4B', color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: `0 8px 24px ${isKids ? 'rgba(236,72,153,0.15)' : 'rgba(59,130,246,0.15)'}` }}>
+            style={{
+              width: 64, height: 64, borderRadius: 20, background: isKids ? '#FDF2F8' : '#1E1B4B',
+              color: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px', boxShadow: `0 8px 24px ${isKids ? 'rgba(236,72,153,0.15)' : 'rgba(59,130,246,0.15)'}`
+            }}>
             {isKids ? <Sparkles size={32} /> : <Terminal size={32} />}
           </motion.div>
 
-          <h2 style={{ fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 800, fontFamily: "'Syne',sans-serif", color: textPrimary, marginBottom: 12, letterSpacing: '-0.5px' }}>
+          <h2 style={{
+            fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 800, fontFamily: "'Syne',sans-serif",
+            color: textPrimary, marginBottom: 12, letterSpacing: '-0.5px'
+          }} className="profile-setup-responsive-h2">
             {isKids ? "Create Your Explorer Profile" : "Initialize Workspace"}
           </h2>
-          
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: isKids ? '#F4F4F5' : '#18181B', border: `1px solid ${borderCol}`, borderRadius: 99, padding: '6px 16px', fontSize: 13, color: textSecondary, fontWeight: 700, fontFamily: "'DM Mono',monospace" }}>
+
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, background: isKids ? '#F4F4F5' : '#18181B',
+            border: `1px solid ${borderCol}`, borderRadius: 99, padding: '6px 16px',
+            fontSize: 13, color: textSecondary, fontWeight: 700, fontFamily: "'DM Mono',monospace"
+          }} className="profile-setup-responsive-badge">
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: accentColor }} />
             Age {userAge} — {isKids ? 'Kids Mode' : 'Pro Mode'}
           </div>
         </div>
 
+        {/* Username */}
         <div style={{ marginBottom: 32 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700, color: textPrimary, marginBottom: 10 }}>
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 700,
+            color: textPrimary, marginBottom: 10
+          }} className="profile-setup-responsive-user">
             <User size={16} color={accentColor} /> {isKids ? 'Choose an Avatar Name' : 'Developer Handle'}
           </label>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: textSecondary, fontWeight: 700, fontFamily: "'DM Mono',monospace" }}>@</span>
+            <span style={{
+              position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
+              color: textSecondary, fontWeight: 700, fontFamily: "'DM Mono',monospace"
+            }}>@</span>
             <input value={username}
               onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s/g, '_'))}
               placeholder={isKids ? 'ai_ninja_99' : 'johndoe_ai'}
               maxLength={20}
-              style={{ width: '100%', padding: '16px 16px 16px 36px', background: inputBg, border: `1px solid ${borderCol}`, borderRadius: 16, fontSize: 16, fontFamily: "'DM Mono',monospace", outline: 'none', color: textPrimary, transition: 'all 0.2s', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
+              style={{
+                width: '100%', padding: '16px 16px 16px 36px', background: inputBg,
+                border: `1px solid ${borderCol}`, borderRadius: 16, fontSize: 16,
+                fontFamily: "'DM Mono',monospace", outline: 'none', color: textPrimary,
+                transition: 'all 0.2s', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+              }}
+              className="profile-setup-responsive-input"
               onFocus={e => { e.target.style.borderColor = accentColor; e.target.style.boxShadow = `0 0 0 3px ${isKids ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)'}` }}
               onBlur={e => { e.target.style.borderColor = borderCol; e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
             />
           </div>
         </div>
 
+        {/* Topics Selector */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <label style={{ fontSize: 14, fontWeight: 700, color: textPrimary }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginBottom: 12
+          }}>
+            <label style={{
+              fontSize: 14, fontWeight: 700, color: textPrimary
+            }} className="profile-setup-responsive-topics-label">
               {isKids ? 'Select your Quests' : 'Select Core Tracks'}
             </label>
-            <span style={{ fontSize: 12, color: textSecondary, fontWeight: 600 }}>{selectedTopics.length} selected</span>
+            <span style={{
+              fontSize: 12, color: textSecondary, fontWeight: 600
+            }} className="profile-setup-responsive-topics-count">{selectedTopics.length} selected</span>
           </div>
           
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12
+          }} className="profile-setup-responsive-topics-grid">
             {topicsToShow.map((t, index) => {
               const active = selectedTopics.includes(t.id)
               return (
@@ -210,12 +303,19 @@ const handleSave = async () => {
                     color: active ? (isKids ? '#BE185D' : '#60A5FA') : textSecondary,
                     cursor: 'pointer', transition: 'all 0.2s ease',
                     boxShadow: active ? `0 4px 12px ${isKids ? 'rgba(236,72,153,0.1)' : 'rgba(59,130,246,0.1)'}` : 'none'
+                  }}
+                  className="profile-setup-responsive-topic-btn"
+                >
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    width: '100%', alignItems: 'center'
                   }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                     <div style={{ color: active ? accentColor : textSecondary }}>{t.icon}</div>
                     {active && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Check size={16} color={accentColor} /></motion.div>}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "'Nunito',sans-serif", lineHeight: 1.2 }}>{t.label}</span>
+                  <span style={{
+                    fontSize: 13, fontWeight: 700, fontFamily: "'Nunito',sans-serif", lineHeight: 1.2
+                  }}>{t.label}</span>
                 </motion.button>
               )
             })}
@@ -226,7 +326,11 @@ const handleSave = async () => {
           {error && (
             <motion.div initial={{ opacity: 0, height: 0, marginBottom: 0 }} animate={{ opacity: 1, height: 'auto', marginBottom: 20 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }}
               style={{ overflow: 'hidden' }}>
-              <div style={{ background: '#7F1D1D', border: '1px solid #B91C1C', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#FECACA', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                background: '#7F1D1D', border: '1px solid #B91C1C',
+                borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#FECACA',
+                fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8
+              }} className="profile-setup-responsive-error">
                 <div style={{ background: '#DC2626', borderRadius: '50%', width: 6, height: 6 }} /> {error}
               </div>
             </motion.div>
@@ -235,20 +339,22 @@ const handleSave = async () => {
 
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
           onClick={handleSave} disabled={isSaving}
-          style={{ 
-            width: '100%', padding: '18px', 
-            background: isKids ? '#EC4899' : '#ffffff', 
-            color: isKids ? '#ffffff' : '#09090B', 
-            border: 'none', borderRadius: 16, fontSize: 16, fontWeight: 800, fontFamily: "'Nunito',sans-serif", 
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, 
-            opacity: isSaving ? 0.75 : 1, 
-            boxShadow: isKids ? '0 10px 25px rgba(236,72,153,0.3)' : '0 10px 25px rgba(255,255,255,0.1)' 
-          }}>
-          {isSaving 
-            ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</> 
-            : <>{isKids ? 'Start Adventure' : 'Launch Workspace'} <ArrowRight size={18} /></>}
+          style={{
+            width: '100%', padding: '18px',
+            background: isKids ? '#EC4899' : '#ffffff',
+            color: isKids ? '#ffffff' : '#09090B',
+            border: 'none', borderRadius: 16, fontSize: 16, fontWeight: 800, fontFamily: "'Nunito',sans-serif",
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            opacity: isSaving ? 0.75 : 1,
+            boxShadow: isKids ? '0 10px 25px rgba(236,72,153,0.3)' : '0 10px 25px rgba(255,255,255,0.1)'
+          }}
+          className="profile-setup-responsive-save-btn"
+        >
+          {isSaving
+            ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+            : <>{isKids ? 'Start Adventure' : 'Launch Workspace'} <ArrowRight size={18} /></>
+          }
         </motion.button>
-
       </motion.div>
     </div>
   )

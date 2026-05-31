@@ -69,7 +69,7 @@ export default function StoryTask({ zone, data, onComplete }) {
 
   return (
     // ── Negative Margins & Exact Gradient from Image ──
-    <div style={{ 
+    <div className="story-task-wrapper" style={{ 
       margin: '-32px', 
       padding: '24px 20px', 
       borderRadius: '32px', 
@@ -80,6 +80,58 @@ export default function StoryTask({ zone, data, onComplete }) {
       position: 'relative'
     }}>
 
+      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
+      <style>{`
+        /* Responsive adjustments for StoryTask */
+        @media (max-width: 768px) {
+          .story-task-wrapper {
+            margin: -16px !important;
+            padding: 16px 12px !important;
+            border-radius: 24px !important;
+            min-height: 80vh !important; /* Adjust height for mobile */
+          }
+          .task-header-text {
+            font-size: 24px !important;
+            margin-bottom: 16px !important;
+          }
+          .chat-bubble {
+            max-width: 88% !important; /* Give more width to text on mobile */
+            padding: 12px 14px !important;
+            font-size: 13px !important;
+          }
+          .input-container {
+            gap: 8px !important;
+          }
+          .chat-input {
+            padding: 14px 44px 14px 16px !important; /* Space for mic icon */
+            font-size: 13px !important;
+          }
+          .send-btn {
+            width: 48px !important;
+            height: 48px !important;
+          }
+          .send-btn svg {
+            width: 18px !important;
+            height: 18px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .story-task-wrapper {
+            margin: -12px !important;
+          }
+          .task-header-text {
+            font-size: 20px !important;
+          }
+          .modal-card {
+            padding: 28px 20px !important;
+          }
+          .modal-card h2 {
+            font-size: 22px !important;
+          }
+        }
+      `}</style>
+
       {/* ── SUCCESS MODAL OVERLAY ── */}
       <AnimatePresence>
         {done && (
@@ -88,6 +140,7 @@ export default function StoryTask({ zone, data, onComplete }) {
             style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, borderRadius: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(6px)' }}
           >
             <motion.div 
+              className="modal-card"
               initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }}
               style={{ background: '#ffffff', borderRadius: 32, padding: '36px 24px', width: '100%', maxWidth: 340, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
             >
@@ -116,7 +169,7 @@ export default function StoryTask({ zone, data, onComplete }) {
       </AnimatePresence>
 
       {/* ── Header ── */}
-      <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 900, color: '#1A1A1A', margin: '10px 0 24px', fontFamily: "'Syne',serif", letterSpacing: '-0.5px' }}>
+      <h2 className="task-header-text" style={{ textAlign: 'center', fontSize: 28, fontWeight: 900, color: '#1A1A1A', margin: '10px 0 24px', fontFamily: "'Syne',serif", letterSpacing: '-0.5px' }}>
         Chat with {data.botName}!
       </h2>
 
@@ -134,7 +187,7 @@ export default function StoryTask({ zone, data, onComplete }) {
             )}
             
             {/* Message Bubble */}
-            <div style={{ 
+            <div className="chat-bubble" style={{ 
               maxWidth: '75%', 
               padding: '14px 18px', 
               borderRadius: msg.role === 'bot' ? '20px 20px 20px 4px' : '20px 20px 4px 20px', 
@@ -165,7 +218,7 @@ export default function StoryTask({ zone, data, onComplete }) {
             <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                <DynamicIcon name={data.botAvatar} size={18} color="#1E3A8A" />
             </div>
-            <div style={{ background: '#F3F4F6', borderRadius: '20px 20px 20px 4px', padding: '16px 20px', display: 'flex', gap: 6, alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <div className="chat-bubble" style={{ background: '#F3F4F6', borderRadius: '20px 20px 20px 4px', padding: '16px 20px', display: 'flex', gap: 6, alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
               {[0, 1, 2].map(i => (
                 <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
                   style={{ width: 6, height: 6, borderRadius: '50%', background: '#9CA3AF' }} />
@@ -190,10 +243,11 @@ export default function StoryTask({ zone, data, onComplete }) {
 
       {/* ── Input Bar ── */}
       {!done && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="input-container" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           
           <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
             <input 
+              className="chat-input"
               value={input} 
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submit(input)}
@@ -221,7 +275,7 @@ export default function StoryTask({ zone, data, onComplete }) {
           </div>
           
           {/* Circular Purple Send Button */}
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => submit(input)}
+          <motion.button className="send-btn" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => submit(input)}
             style={{ 
               width: 52, 
               height: 52, 
@@ -231,7 +285,7 @@ export default function StoryTask({ zone, data, onComplete }) {
               cursor: 'pointer', 
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'center', 
+              justify: 'center', 
               color: '#ffffff', 
               boxShadow: '0 4px 12px rgba(168,85,247,0.3)',
               flexShrink: 0
