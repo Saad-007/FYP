@@ -405,49 +405,55 @@ function Navbar({ navigate }) {
   }, [])
 
   return (
-    <motion.nav
-      initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 280, damping: 30 }}
-      style={{
-        position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 200,
-        width: '94%', maxWidth: 1200, height: 66, borderRadius: 99,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px',
-        background: scrolled ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.65)',
-        backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
-        border: '1px solid rgba(255,255,255,0.85)',
-        boxShadow: scrolled ? '0 12px 36px rgba(0,0,0,0.08)' : '0 4px 16px rgba(0,0,0,0.04)',
-        transition: 'background 0.35s, box-shadow 0.35s'
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        {/* Yahan aapka original desktop size CSS class se aa raha hai */}
-        <div className="nav-logo-container">
-          <img 
-            src="/logo.png" 
-            alt="EduAIQuest Logo" 
-            className="nav-logo-img"
-          />
-        </div>
-      </div>
+<motion.nav
+  className="custom-navbar" /* 🟢 NAYA: Yeh class add karni hai */
+  initial={{ y: -40, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+  style={{
+    position: 'fixed', 
+    top: 18, 
+    zIndex: 200,
+    height: 66, 
+    borderRadius: 99,
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    padding: '0 22px',
+    background: scrolled ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.65)',
+    backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
+    border: '1px solid rgba(255,255,255,0.85)',
+    boxShadow: scrolled ? '0 12px 36px rgba(0,0,0,0.08)' : '0 4px 16px rgba(0,0,0,0.04)',
+    transition: 'background 0.35s, box-shadow 0.35s'
+  }}
+>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div className="nav-logo-container">
+      <img 
+        src="/logo.png" 
+        alt="EduAIQuest Logo" 
+        className="nav-logo-img"
+      />
+    </div>
+  </div>
 
-      <div className="nav-buttons" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <button
-          className="nav-btn-link"
-          onClick={() => navigate('/login')}
-          style={{ background: 'transparent', border: 'none', color: '#52525B', fontWeight: 800, padding: '9px 18px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, transition: 'color 0.2s' }}
-        >
-          Log in
-        </button>
-        <MagneticButton
-          className="nav-btn-primary"
-          onClick={() => navigate('/register')}
-          style={{ background: '#09090B', border: 'none', color: '#fff', fontWeight: 900, padding: '11px 24px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, boxShadow: '0 8px 20px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          Get Started <ArrowRight size={15} />
-        </MagneticButton>
-      </div>
-    </motion.nav>
+  <div className="nav-buttons" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <button
+      className="nav-btn-link"
+      onClick={() => navigate('/login')}
+      style={{ background: 'transparent', border: 'none', color: '#52525B', fontWeight: 800, padding: '9px 18px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, transition: 'color 0.2s' }}
+    >
+      Log in
+    </button>
+    <MagneticButton
+      className="nav-btn-primary"
+      onClick={() => navigate('/register')}
+      style={{ background: '#09090B', border: 'none', color: '#fff', fontWeight: 900, padding: '11px 24px', borderRadius: 99, cursor: 'pointer', fontFamily: "'Nunito',sans-serif", fontSize: 15, boxShadow: '0 8px 20px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}
+    >
+      Get Started <ArrowRight size={15} />
+    </MagneticButton>
+  </div>
+</motion.nav>
   )
 }
 
@@ -519,6 +525,21 @@ export default function LandingPage() {
           height: 40%;
           object-fit: contain;
         }
+          /* 🟢 LAPTOP KE LIYE (Half screen, Right side) */
+.custom-navbar {
+  width: 44%;
+  right: 4%;
+}
+
+/* 🟢 MOBILE & TABLET KE LIYE (Full screen, Centered) */
+@media (max-width: 768px) {
+  .custom-navbar {
+    width: 94% !important;
+    right: auto !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+}
 
         /* 100% RESPONSIVE CSS INJECTED HERE */
         @media(max-width: 1024px) {
