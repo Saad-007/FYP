@@ -298,6 +298,7 @@ export default function KidMissionPage() {
           })}
         </div>
       </div>
+          {/* Task Interactive Body */}
 
       <AnimatePresence>
         {showBadge && <BadgeCelebration zone={zone} totalXp={totalXp} onDone={() => navigate('/kids/dashboard')} />}
