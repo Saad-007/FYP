@@ -7,6 +7,7 @@ import { ThemeProvider, useTheme } from './data/ThemeContext'
 import Sidebar     from './components/Sidebar'
 import Topbar      from './components/Topbar'
 import { Spinner } from './components/UI'
+import ChatUI from "../../components/ChatUI";
 
 import Overview     from './views/Overview'
 import LearningPath from './views/LearningPath'
@@ -106,6 +107,7 @@ function Shell({ profile }) {
               {view === 'learning'     && <LearningPath track={track} onOpenWorkspace={() => setWorkspace(true)} />}
               {view === 'analytics'    && <Analytics />}
               {view === 'achievements' && <Achievements />}
+              {view === 'chat'         && <ChatUI />}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -148,4 +150,5 @@ export default function ProDashboard() {
       <Shell profile={profile} />
     </ThemeProvider>
   )
+
 }
