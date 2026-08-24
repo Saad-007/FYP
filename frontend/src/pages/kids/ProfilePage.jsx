@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router-dom'
+import KidsCanvas from '../../components/kids/Shared/KidsCanvas'
 import {
   ArrowLeft, Star, Flame, Diamond, Brain, Activity,
   Sparkles, Rocket, Trophy, Award, Target, Zap,
@@ -13,7 +14,7 @@ import { useAuthStore } from '../../store/authStore'
 // ── responsive hook ──────────────────────────────────────
 function useBreakpoint() {
   const [width, setWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1200
+  typeof window !== 'undefined' ? window.innerWidth : 1200
   )
   useEffect(() => {
     const fn = () => setWidth(window.innerWidth)
@@ -32,6 +33,7 @@ export default function KidsProfilePage() {
   const location  = useLocation()
   const navigate  = useNavigate()
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showCanvas, setShowCanvas] = useState(false)
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
 
   const { user, logout } = useAuthStore()
@@ -215,6 +217,17 @@ export default function KidsProfilePage() {
                   {avatarInitial}
                 </div>
               </div>
+
+            <button
+               onClick={() => setShowCanvas(true)}
+              style={{
+              background: '#EEF2FF', color: '#6366F1', border: 'none',
+              padding: '6px 14px', borderRadius: '10px', fontSize: '12px',
+            fontWeight: 800, cursor: 'pointer', marginBottom: '12px',
+  }}
+>
+             🎨 Draw Your Avatar
+             </button>
 
               <h2 style={{
                 margin: '0 0 4px',
@@ -785,7 +798,27 @@ export default function KidsProfilePage() {
           </motion.div>
         )}
       </AnimatePresence>
-
+      {showCanvas && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 200, padding: 20,
+        }}>
+          <div>
+            <KidsCanvas />
+            <button
+              onClick={() => setShowCanvas(false)}
+              style={{
+                marginTop: 10, width: '100%', background: '#09090B', color: '#fff',
+                padding: '10px', borderRadius: '12px', border: 'none',
+                fontWeight: 800, cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -804,3 +837,4 @@ function EyeIcon(props) {
     </svg>
   )
 }
+

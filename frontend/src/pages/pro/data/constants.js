@@ -139,6 +139,7 @@ export const NAV_ITEMS = [
   { id: 'overview',     label: 'Overview',      iconName: 'LayoutDashboard' },
   { id: 'learning',     label: 'Learning Path', iconName: 'GitMerge'        },
   { id: 'workspace',    label: 'AI Workspace',  iconName: 'Terminal'        },
+  { id: 'chat',         label: 'AI Chat',       iconName: 'MessageSquare'   },
   { id: 'analytics',    label: 'Analytics',     iconName: 'BarChart3'       },
   { id: 'achievements', label: 'Achievements',  iconName: 'Trophy'          },
 ]

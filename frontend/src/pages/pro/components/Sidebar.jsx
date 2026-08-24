@@ -2,11 +2,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, GitMerge, Terminal, BarChart3,
   Trophy, LogOut, Menu, Sparkles, Sun, Moon, X,
+  MessageSquare,
 } from 'lucide-react'
 import { useTheme } from '../data/ThemeContext'
 import { NAV_ITEMS } from '../data/constants'
 
-const ICON_MAP = { LayoutDashboard, GitMerge, Terminal, BarChart3, Trophy }
+const ICON_MAP = { LayoutDashboard, GitMerge, Terminal, BarChart3, Trophy, MessageSquare }
 
 export default function Sidebar({
   activeView, onNav, profile, level, onLogout,
