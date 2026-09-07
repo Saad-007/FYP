@@ -1,2 +1,8 @@
 Draw & Skretch Dataset.txt
 
+.env
+.env.*
+!.env.example
+
+backend/.env
+
