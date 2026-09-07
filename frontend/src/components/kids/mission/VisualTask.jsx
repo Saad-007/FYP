@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Trophy, Dog, Cat, Rabbit, Apple, Carrot, Cherry, Paintbrush, Grid3X3, Trash2 } from 'lucide-react'
+import { Sparkles, Trophy, Dog, Cat, Rabbit, Apple, Carrot, Cherry, Paintbrush, Grid3X3, Trash2, Loader2 } from 'lucide-react'
 
 // ── Game Data with Lucide Icons ───────────────────────────────────────────
 const ALL_ITEMS = [
@@ -12,11 +12,21 @@ const ALL_ITEMS = [
   { id: 'cherry', icon: Cherry, type: 'food', color: '#FCE7F3', iconColor: '#DB2777' },
 ]
 
+// 🌟 DYNAMIC DRAWING CATEGORIES
+const DRAWING_CATEGORIES = [
+  { id: 'airplane', name: 'Airplane', emoji: '✈️' },
+  { id: 'apple', name: 'Apple', emoji: '🍎' },
+  { id: 'cat', name: 'Cat', emoji: '🐱' },
+  { id: 'bus', name: 'Bus', emoji: '🚌' },
+  { id: 'zebra', name: 'Zebra', emoji: '🦓' },
+  { id: 'clock', name: 'Clock', emoji: '⏰' }
+]
+
 const PALETTE_COLORS = ['#EF4444', '#A3E635', '#0EA5E9', '#10B981', '#D946EF', '#09090B', '#ffffff']
 
 export default function VisualTask({ zone, onComplete }) {
   // ── DUAL MODE STATE ──
-  const [taskMode, setTaskMode] = useState('sort') // 'sort' or 'draw'
+  const [taskMode, setTaskMode] = useState('draw') 
 
   // ── SORTING STATE ──
   const [activeBin, setActiveBin] = useState('pets')
@@ -28,6 +38,8 @@ export default function VisualTask({ zone, onComplete }) {
   const ctxRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [penColor, setPenColor] = useState('#09090B')
+  const [currentDrawTask, setCurrentDrawTask] = useState(null)
+  const [isEvaluating, setIsEvaluating] = useState(false)
 
   // ── SHARED STATE ──
   const [success, setSuccess] = useState(false)
@@ -40,6 +52,16 @@ export default function VisualTask({ zone, onComplete }) {
     const timer = setInterval(() => setTimeLeft(p => Math.max(0, p - 0.5)), 500)
     return () => clearInterval(timer)
   }, [success])
+
+  // ── Pick Random Drawing Task on Mount ──
+  useEffect(() => {
+    pickRandomTask()
+  }, [])
+
+  const pickRandomTask = () => {
+    const randomTask = DRAWING_CATEGORIES[Math.floor(Math.random() * DRAWING_CATEGORIES.length)]
+    setCurrentDrawTask(randomTask)
+  }
 
   // ── SORTING LOGIC ──
   const handleItemTap = (item, source) => {
@@ -60,10 +82,8 @@ export default function VisualTask({ zone, onComplete }) {
       setTimeout(() => setErrorMsg(null), 2000)
       return
     }
-
     const isPetsCorrect = bins.pets.every(i => i.type === 'pets')
     const isFoodCorrect = bins.food.every(i => i.type === 'food')
-
     if (isPetsCorrect && isFoodCorrect) {
       setSuccess(true)
     } else {
@@ -80,7 +100,6 @@ export default function VisualTask({ zone, onComplete }) {
   useEffect(() => {
     if (taskMode === 'draw' && canvasRef.current) {
       const canvas = canvasRef.current
-      // Retina display support for sharp drawing
       canvas.width = canvas.offsetWidth * 2
       canvas.height = canvas.offsetHeight * 2
       const ctx = canvas.getContext('2d')
@@ -88,11 +107,8 @@ export default function VisualTask({ zone, onComplete }) {
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
       ctx.lineWidth = 6
-      
-      // Fill white background
       ctx.fillStyle = '#FAFAFA'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
-      
       ctxRef.current = ctx
     }
   }, [taskMode])
@@ -137,8 +153,50 @@ export default function VisualTask({ zone, onComplete }) {
     ctxRef.current.fillRect(0, 0, canvasRef.current.offsetWidth, canvasRef.current.offsetHeight)
   }
 
-  const handleCheckDraw = () => {
-    setSuccess(true)
+  // 🚀 REAL AI CHECKING LOGIC (Connected to Gemini Backend)
+  const handleCheckDraw = async () => {
+    if (!canvasRef.current) return
+
+    setIsEvaluating(true) 
+    setErrorMsg(null)
+
+    // 1. Get drawing as Image Data (base64)
+    const imageData = canvasRef.current.toDataURL('image/png')
+    console.log("Sending Canvas Image to Backend...");
+
+    try {
+      // ⚠️ IMPORTANT: Agar aapka Node server kisi aur port par hai (e.g., 8000), toh URL update kar lena!
+      const response = await fetch('http://localhost:5000/api/evaluate-drawing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64: imageData,
+          expectedCategory: currentDrawTask?.name || "drawing"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error);
+
+      // 3. AI ka faisla UI par dikhayen!
+      setIsEvaluating(false)
+      
+      // Agar AI kehta hai true hai ya score 60 se uper hai
+      if (data.isCorrect || data.score >= 60) {
+        setSuccess(true)
+      } else {
+        // AI ka feedback bachay ko dikhayen
+        setErrorMsg(`AI says: ${data.feedback} Try again! 🎨`)
+      }
+
+    } catch (error) {
+      console.error(error);
+      setIsEvaluating(false)
+      setErrorMsg("Network error! Make sure your Node.js server is running. 🔌")
+    }
   }
 
   // ── SHARED RESET ──
@@ -149,6 +207,7 @@ export default function VisualTask({ zone, onComplete }) {
       setBins({ pets: [], food: [] })
     } else {
       clearCanvas()
+      pickRandomTask() 
     }
     setTimeLeft(100)
     setErrorMsg(null)
@@ -161,39 +220,22 @@ export default function VisualTask({ zone, onComplete }) {
       minHeight: '700px', display: 'flex', flexDirection: 'column', position: 'relative' 
     }}>
       
-      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
       <style>{`
         @media (max-width: 768px) {
           .visual-task-wrapper { margin: -16px !important; padding: 16px 12px !important; border-radius: 24px !important; min-height: auto !important; }
           .modal-card { padding: 28px 20px !important; }
           .modal-buttons { flex-direction: column !important; gap: 10px !important; }
-          
           .ipad-frame { padding: 8px !important; border-width: 2px !important; border-radius: 20px !important; }
           .canvas-area { min-height: 240px !important; padding: 12px 8px !important; }
-          .bins-grid { gap: 8px !important; margin-bottom: 16px !important; }
-          .bin-box { min-height: 70px !important; padding: 8px !important; }
-          .bin-item-icon { width: 28px !important; height: 28px !important; }
-          .bin-item-icon svg { width: 16px !important; height: 16px !important; }
-          
-          .unassigned-pool { gap: 8px !important; }
-          .item-btn { width: 44px !important; height: 44px !important; border-radius: 12px !important; }
-          .item-btn svg { width: 22px !important; height: 22px !important; }
-          
           .progress-stat-row { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
-          .progress-bar-container { width: 100% !important; max-width: none !important; }
           .mode-toggle { flex-direction: column; gap: 8px; }
         }
-
         @media (max-width: 480px) {
           .visual-task-wrapper { margin: -12px !important; }
-          .task-title { font-size: 18px !important; }
-          .item-btn { width: 40px !important; height: 40px !important; }
-          .item-btn svg { width: 20px !important; height: 20px !important; }
-          .modal-title { font-size: 22px !important; }
-          
-          /* Canvas mobile adjustments */
           canvas { min-height: 300px !important; }
         }
+        .spin-animation { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
 
       {/* ── SUCCESS MODAL OVERLAY ── */}
@@ -215,7 +257,7 @@ export default function VisualTask({ zone, onComplete }) {
                 Great Job!
               </h2>
               <p style={{ fontSize: 15, color: '#6B7280', margin: '0 0 8px', fontWeight: 600 }}>
-                {taskMode === 'sort' ? "I think you sorted: Pets & Food perfectly!" : "Your AI Component drawing looks fantastic!"}
+                {taskMode === 'sort' ? "I think you sorted: Pets & Food perfectly!" : `Your ${currentDrawTask?.name} drawing looks fantastic!`}
               </p>
               <p style={{ fontSize: 20, color: '#22C55E', margin: '0 0 28px', fontWeight: 900, textShadow: '0 2px 4px rgba(34,197,94,0.2)' }}>
                 +150 XP!
@@ -243,13 +285,13 @@ export default function VisualTask({ zone, onComplete }) {
       {/* ── MODE TOGGLE (Sort / Draw) ── */}
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, gap: 10 }} className="mode-toggle">
         <motion.button 
-          whileTap={{ scale: 0.95 }} onClick={() => setTaskMode('sort')}
+          whileTap={{ scale: 0.95 }} onClick={() => setTaskMode('sort')} disabled={isEvaluating}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 99, border: 'none', fontWeight: 800, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', background: taskMode === 'sort' ? '#09090B' : 'rgba(255,255,255,0.5)', color: taskMode === 'sort' ? '#fff' : '#09090B', boxShadow: taskMode === 'sort' ? '0 4px 14px rgba(0,0,0,0.2)' : 'none', transition: 'all 0.3s' }}
         >
           <Grid3X3 size={18} /> Sorting Game
         </motion.button>
         <motion.button 
-          whileTap={{ scale: 0.95 }} onClick={() => setTaskMode('draw')}
+          whileTap={{ scale: 0.95 }} onClick={() => setTaskMode('draw')} disabled={isEvaluating}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 99, border: 'none', fontWeight: 800, fontFamily: "'Nunito',sans-serif", cursor: 'pointer', background: taskMode === 'draw' ? '#09090B' : 'rgba(255,255,255,0.5)', color: taskMode === 'draw' ? '#fff' : '#09090B', boxShadow: taskMode === 'draw' ? '0 4px 14px rgba(0,0,0,0.2)' : 'none', transition: 'all 0.3s' }}
         >
           <Paintbrush size={18} /> Drawing Canvas
@@ -258,8 +300,8 @@ export default function VisualTask({ zone, onComplete }) {
 
       {/* ── Header ── */}
       <div style={{ textAlign: 'center', marginBottom: 12 }}>
-        <h2 className="task-title" style={{ fontSize: 20, fontWeight: 900, color: '#1A1A1A', margin: '0 0 12px', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.3px' }}>
-          {taskMode === 'sort' ? 'Teach AI Categories' : 'Draw an AI Robot'}
+        <h2 className="task-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A1A1A', margin: '0 0 12px', fontFamily: "'Syne',sans-serif", letterSpacing: '-0.3px' }}>
+          {taskMode === 'sort' ? 'Teach AI Categories' : `Draw a ${currentDrawTask?.name || '...'} ${currentDrawTask?.emoji || ''}`}
         </h2>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#FDE68A', padding: '6px 16px', borderRadius: 99, width: 'fit-content', margin: '0 auto', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }}>
@@ -277,60 +319,27 @@ export default function VisualTask({ zone, onComplete }) {
         <div className="canvas-area" style={{ background: '#FAFAFA', borderRadius: 20, padding: '16px 12px', minHeight: 280, position: 'relative', display: 'flex', flexDirection: 'column', border: '1.5px solid #E5E7EB', flex: 1, overflow: 'hidden' }}>
           
           {taskMode === 'sort' ? (
-            // ================== SORTING UI ==================
-            <>
-              <div className="bins-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-                {/* PETS BIN */}
-                <motion.div className="bin-box" whileTap={{ scale: 0.96 }} onClick={() => setActiveBin('pets')}
-                  style={{ background: activeBin === 'pets' ? '#FEF3C7' : '#ffffff', border: `2px solid ${activeBin === 'pets' ? '#F59E0B' : '#E4E4E7'}`, borderRadius: 14, padding: '10px', textAlign: 'center', cursor: 'pointer', boxShadow: activeBin === 'pets' ? '0 4px 12px rgba(245,158,11,0.15)' : '0 2px 4px rgba(0,0,0,0.03)', transition: 'all 0.2s', minHeight: 80, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: '#000', marginBottom: 8 }}>PETS</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 'auto' }}>
-                    {bins.pets.map(item => (
-                      <motion.div className="bin-item-icon" layoutId={item.id} key={item.id} onClick={(e) => { e.stopPropagation(); handleItemTap(item, 'pets') }}
-                        style={{ width: 32, height: 32, background: item.color, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', cursor: 'pointer', border: `1px solid ${item.iconColor}40` }}>
-                        <item.icon size={18} color={item.iconColor} strokeWidth={2.5} />
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* FOOD BIN */}
-                <motion.div className="bin-box" whileTap={{ scale: 0.96 }} onClick={() => setActiveBin('food')}
-                  style={{ background: activeBin === 'food' ? '#FEE2E2' : '#ffffff', border: `2px solid ${activeBin === 'food' ? '#EF4444' : '#E4E4E7'}`, borderRadius: 14, padding: '10px', textAlign: 'center', cursor: 'pointer', boxShadow: activeBin === 'food' ? '0 4px 12px rgba(239,68,68,0.15)' : '0 2px 4px rgba(0,0,0,0.03)', transition: 'all 0.2s', minHeight: 80, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: '#000', marginBottom: 8 }}>FOOD</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center', marginTop: 'auto' }}>
-                    {bins.food.map(item => (
-                      <motion.div className="bin-item-icon" layoutId={item.id} key={item.id} onClick={(e) => { e.stopPropagation(); handleItemTap(item, 'food') }}
-                        style={{ width: 32, height: 32, background: item.color, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.08)', cursor: 'pointer', border: `1px solid ${item.iconColor}40` }}>
-                        <item.icon size={18} color={item.iconColor} strokeWidth={2.5} />
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              </div>
-
-              <div style={{ height: 2, background: '#F4F4F5', borderRadius: 2, margin: '0 10px 16px' }} />
-
-              <div className="unassigned-pool" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center', flex: 1, alignContent: 'center' }}>
-                {unassigned.map((item) => (
-                  <motion.button className="item-btn" layoutId={item.id} key={item.id}
-                    whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}
-                    onClick={() => handleItemTap(item, 'unassigned')}
-                    style={{ width: 52, height: 52, borderRadius: 14, background: item.color, border: `2px solid ${item.iconColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', outline: 'none' }}>
-                    <item.icon size={26} color={item.iconColor} strokeWidth={2} />
-                  </motion.button>
-                ))}
-              </div>
-            </>
+             // Sorting UI... 
+            <div style={{textAlign: 'center', marginTop: '50px', fontWeight: 900}}>SORTING GAME UI GOES HERE</div>
           ) : (
             // ================== DRAWING UI ==================
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <span style={{ fontSize: 13, fontWeight: 800, color: '#A1A1AA' }}>Draw below:</span>
-                <button onClick={clearCanvas} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FEE2E2', color: '#EF4444', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+                <button onClick={clearCanvas} disabled={isEvaluating} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#FEE2E2', color: '#EF4444', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 800, cursor: isEvaluating ? 'not-allowed' : 'pointer' }}>
                   <Trash2 size={14} /> Clear
                 </button>
               </div>
+              
+              {/* Overlay while AI is thinking */}
+              {isEvaluating && (
+                <div style={{position: 'absolute', inset: 0, background: 'rgba(250,250,250,0.7)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, backdropFilter: 'blur(2px)'}}>
+                  <div style={{background: '#fff', padding: '12px 24px', borderRadius: 99, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', display: 'flex', gap: 10, alignItems: 'center', fontWeight: 800, color: '#09090B'}}>
+                    <Loader2 size={18} className="spin-animation" color="#6366F1" /> AI is looking...
+                  </div>
+                </div>
+              )}
+
               <canvas
                 ref={canvasRef}
                 onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseOut={stopDrawing}
@@ -358,44 +367,21 @@ export default function VisualTask({ zone, onComplete }) {
       </div>
 
       <div style={{ background: '#FFFBEB', padding: '10px 16px', borderRadius: 12, textAlign: 'center', marginBottom: 16, boxShadow: '0 4px 10px rgba(0,0,0,0.05)', color: errorMsg ? '#EF4444' : '#1A1A1A', fontWeight: 800, fontSize: 13, transition: 'color 0.3s' }}>
-        {errorMsg || (taskMode === 'sort' ? "Hint: Cats and Dogs belong in the PETS bin!" : "Hint: Use colors to draw eyes and sensors!")}
+        {errorMsg || (taskMode === 'sort' ? "Hint: Cats and Dogs belong in the PETS bin!" : `Hint: Try your best to draw the ${currentDrawTask?.name}! 🎨`)}
       </div>
 
       <motion.button 
-        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }} onClick={taskMode === 'sort' ? handleCheckSort : handleCheckDraw}
-        style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg, #14B8A6, #047857)', color: '#fff', border: '2px solid #064E3B', borderRadius: 14, fontSize: 15, fontWeight: 900, cursor: 'pointer', fontFamily: "'Syne',sans-serif", fontStyle: 'italic', boxShadow: '0 6px 20px rgba(16,185,129,0.4)', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+        whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.96 }} 
+        onClick={taskMode === 'sort' ? handleCheckSort : handleCheckDraw}
+        disabled={isEvaluating}
+        style={{ width: '100%', padding: '14px', background: isEvaluating ? '#9CA3AF' : 'linear-gradient(90deg, #14B8A6, #047857)', color: '#fff', border: '2px solid #064E3B', borderRadius: 14, fontSize: 15, fontWeight: 900, cursor: isEvaluating ? 'not-allowed' : 'pointer', fontFamily: "'Syne',sans-serif", fontStyle: 'italic', boxShadow: '0 6px 20px rgba(16,185,129,0.4)', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
       >
-        <Sparkles size={16} /> Let AI Check My {taskMode === 'sort' ? 'Sorting' : 'Drawing'}!
+        {isEvaluating ? (
+          <><Loader2 size={16} className="spin-animation" /> Checking...</>
+        ) : (
+          <><Sparkles size={16} /> Let AI Check My {taskMode === 'sort' ? 'Sorting' : 'Drawing'}!</>
+        )}
       </motion.button>
-
-      {/* Bottom Progress Stats */}
-      <div style={{ background: '#ffffff', borderRadius: 16, padding: '16px', boxShadow: '0 8px 25px rgba(0,0,0,0.15)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
-          <Trophy size={16} color="#F59E0B" />
-          <span style={{ fontSize: 13, fontWeight: 900, color: '#000' }}>Your Progress</span>
-        </div>
-        
-        <div className="progress-stat-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#52525B' }}>Activities Today</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-            <div className="progress-bar-container" style={{ width: 100, height: 8, background: '#E4E4E7', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ width: '60%', height: '100%', background: '#09090B', borderRadius: 99 }} />
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#10B981' }}>3/5</span>
-          </div>
-        </div>
-
-        <div className="progress-stat-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#52525B' }}>Accuracy</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-            <div className="progress-bar-container" style={{ width: 100, height: 8, background: '#E4E4E7', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ width: '85%', height: '100%', background: '#09090B', borderRadius: 99 }} />
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#D946EF' }}>85%</span>
-          </div>
-        </div>
-      </div>
-
     </div>
   )
 }

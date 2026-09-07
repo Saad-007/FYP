@@ -1,138 +1,156 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import * as Icons from 'lucide-react'
-import { Mic, MicOff, Send, ChevronRight, Trophy, User, Lightbulb } from 'lucide-react'
+import { Mic, MicOff, Send, Trophy, User, Play, Loader2 } from 'lucide-react'
 import { XP_MAP } from '../../../data/kids/zoneData'
 
-// Helper component for dynamic vector icons
 const DynamicIcon = ({ name, size = 20, color = 'currentColor', ...props }) => {
   const IconComponent = Icons[name] || Icons.Bot
   return <IconComponent size={size} color={color} {...props} />
 }
 
 export default function StoryTask({ zone, data, onComplete }) {
-  const [messages, setMessages]   = useState([{ role: 'bot', text: data.prompts[0], id: 0 }])
-  const [promptIdx, setPromptIdx] = useState(0)
+  // data.mode can be 'text' or 'voice'
+  const isVoiceMode = true;
+  const [lang, setLang] = useState('en')
+  const [messages, setMessages]   = useState([{ role: 'bot', text: data.prompts[0], id: 0, audioUrl: null }])
   const [input, setInput]         = useState('')
-  const [listening, setListening] = useState(false)
+  const [recording, setRecording] = useState(false)
   const [done, setDone]           = useState(false)
-  const [typing, setTyping]       = useState(false)
+  const [processing, setProcessing] = useState(false)
+  const [turnCount, setTurnCount] = useState(0) 
   
-  const recognitionRef = useRef(null)
-  const bottomRef      = useRef(null)
+  const mediaRecorderRef = useRef(null)
+  const audioChunksRef   = useRef([])
+  const bottomRef        = useRef(null)
 
-  // Auto-scroll to latest message
   useEffect(() => { 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) 
-  }, [messages, typing])
+  }, [messages, processing])
 
-  const evalScore = text => data.keywords.filter(k => text.toLowerCase().includes(k)).length
-
-  const submit = (text) => {
+  // ── TEXT MODE LOGIC ──
+  const submitText = async (text) => {
     if (!text.trim()) return
-    setMessages(p => [...p, { role: 'user', text, id: Date.now() }])
+    const newUserMsg = { role: 'user', text, id: Date.now() }
+
+    setMessages(p => [...p, newUserMsg])
     setInput('')
-    setTyping(true)
+    setProcessing(true)
     
-    const next = promptIdx + 1
-    
-    setTimeout(() => {
-      setTyping(false)
-      const score = evalScore(text)
-      const reactions = score >= 2
-        ? ["Great thinking! 🎯", "You really know your stuff! 🌟", "Brilliant! 💡"]
-        : ["Interesting! Tell me more...", "Let's explore further...", "Good start!"]
-      
-      const reaction = reactions[promptIdx % reactions.length]
-      
-      if (next < data.prompts.length) {
-        setMessages(p => [...p, { role: 'bot', text: `${reaction} Now — ${data.prompts[next]}`, id: Date.now() + 1 }])
-        setPromptIdx(next)
-      } else {
-        setMessages(p => [...p, { role: 'bot', text: `🎉 ${reaction} You've explained everything perfectly!`, id: Date.now() + 1 }])
-        setTimeout(() => setDone(true), 1500) // Trigger success modal
-      }
-    }, 1200)
+    try {
+      const response = await fetch('http://localhost:5000/api/story-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userText: text,
+          chatHistory: [...messages, newUserMsg].slice(0, -1),
+          botName: data.botName,
+          scenario: data.scenario,
+          language: lang
+        })
+      })
+      const aiData = await response.json()
+      setMessages(p => [...p, { role: 'bot', text: aiData.reply, id: Date.now() }])
+      checkCompletion()
+    } catch (error) {
+      setMessages(p => [...p, { role: 'bot', text: "Oops! My AI brain is sleeping.", id: Date.now() }])
+    } finally {
+      setProcessing(false)
+    }
   }
 
-  const toggleVoice = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { alert('Speech not supported. Please type!'); return }
-    if (listening) { recognitionRef.current?.stop(); setListening(false); return }
-    const r = new SR()
-    r.lang = 'en-US'; r.interimResults = false
-    r.onresult = e => { setInput(e.results[0][0].transcript); setListening(false) }
-    r.onend = () => setListening(false)
-    recognitionRef.current = r
-    r.start(); setListening(true)
+  // ── REAL VOICE MODE LOGIC ──
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const userAudioUrl = URL.createObjectURL(audioBlob)
+        
+        // Show user voice note in UI
+        const newUserMsg = { role: 'user', text: "🎤 Voice Note", audioUrl: userAudioUrl, id: Date.now() }
+        setMessages(p => [...p, newUserMsg])
+        setProcessing(true)
+        
+        await sendAudioToBackend(audioBlob, newUserMsg)
+      }
+
+      mediaRecorder.start()
+      setRecording(true)
+    } catch (err) {
+      alert("Microphone access denied!")
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop()
+      setRecording(false)
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
+    }
+  }
+
+  const sendAudioToBackend = async (audioBlob, newUserMsg) => {
+    const formData = new FormData()
+    formData.append('audio', audioBlob, 'user_voice.webm')
+    formData.append('botName', data.botName)
+    formData.append('scenario', data.scenario)
+   formData.append('language', lang) 
+    // Passing history as stringified JSON
+    const history = [...messages, newUserMsg].slice(0, -1).map(m => ({ role: m.role, text: m.text }))
+    formData.append('chatHistory', JSON.stringify(history))
+
+    try {
+      const response = await fetch('http://localhost:5000/api/story-voice', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const aiData = await response.json()
+      
+      // Assume backend sends back the transcribed text AND a base64 audio response
+      // aiData.replyText, aiData.audioBase64
+      const botAudioUrl = `data:audio/mp3;base64,${aiData.audioBase64}`
+      
+      setMessages(p => [...p, { role: 'bot', text: aiData.replyText, audioUrl: botAudioUrl, id: Date.now() }])
+      
+      // Auto-play bot response
+      const audio = new Audio(botAudioUrl)
+      audio.play()
+
+      checkCompletion()
+    } catch (error) {
+      setMessages(p => [...p, { role: 'bot', text: "Voice processing failed.", id: Date.now() }])
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const checkCompletion = () => {
+    setTurnCount(p => {
+      const newCount = p + 1
+      if (newCount >= 2) setTimeout(() => setDone(true), 2000)
+      return newCount
+    })
+  }
+
+  const playAudio = (url) => {
+    if (url) new Audio(url).play()
   }
 
   return (
-    // ── Negative Margins & Exact Gradient from Image ──
-    <div className="story-task-wrapper" style={{ 
-      margin: '-32px', 
-      padding: '24px 20px', 
-      borderRadius: '32px', 
-      background: 'linear-gradient(180deg, #B2D8D8 0%, #E9DCA3 100%)', // Pastel Teal to Soft Yellow
-      minHeight: '750px',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    }}>
-
-      {/* ── 100% RESPONSIVE CSS INJECTED HERE ── */}
-      <style>{`
-        /* Responsive adjustments for StoryTask */
-        @media (max-width: 768px) {
-          .story-task-wrapper {
-            margin: -16px !important;
-            padding: 16px 12px !important;
-            border-radius: 24px !important;
-            min-height: 80vh !important; /* Adjust height for mobile */
-          }
-          .task-header-text {
-            font-size: 24px !important;
-            margin-bottom: 16px !important;
-          }
-          .chat-bubble {
-            max-width: 88% !important; /* Give more width to text on mobile */
-            padding: 12px 14px !important;
-            font-size: 13px !important;
-          }
-          .input-container {
-            gap: 8px !important;
-          }
-          .chat-input {
-            padding: 14px 44px 14px 16px !important; /* Space for mic icon */
-            font-size: 13px !important;
-          }
-          .send-btn {
-            width: 48px !important;
-            height: 48px !important;
-          }
-          .send-btn svg {
-            width: 18px !important;
-            height: 18px !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .story-task-wrapper {
-            margin: -12px !important;
-          }
-          .task-header-text {
-            font-size: 20px !important;
-          }
-          .modal-card {
-            padding: 28px 20px !important;
-          }
-          .modal-card h2 {
-            font-size: 22px !important;
-          }
-        }
-      `}</style>
-
-      {/* ── SUCCESS MODAL OVERLAY ── */}
+    <div className="story-task-wrapper" style={{ margin: '-32px', padding: '24px 20px', borderRadius: '32px', background: 'linear-gradient(180deg, #B2D8D8 0%, #E9DCA3 100%)', minHeight: '750px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      
+      {/* SUCCESS MODAL (Same as before) */}
+{/* SUCCESS MODAL OVERLAY */}
       <AnimatePresence>
         {done && (
           <motion.div 
@@ -168,133 +186,94 @@ export default function StoryTask({ zone, data, onComplete }) {
         )}
       </AnimatePresence>
 
-      {/* ── Header ── */}
-      <h2 className="task-header-text" style={{ textAlign: 'center', fontSize: 28, fontWeight: 900, color: '#1A1A1A', margin: '10px 0 24px', fontFamily: "'Syne',serif", letterSpacing: '-0.5px' }}>
-        Chat with {data.botName}!
+      <h2 style={{ textAlign: 'center', fontSize: 28, fontWeight: 900, color: '#1A1A1A', margin: '10px 0 24px', fontFamily: "'Syne',serif" }}>
+        {isVoiceMode ? `Walkie-Talkie with ${data.botName}!` : `Chat with ${data.botName}!`}
       </h2>
-
-      {/* ── Transparent Chat Window ── */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16, paddingRight: 4, paddingBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+    <button 
+      onClick={() => setLang(lang === 'en' ? 'ur' : 'en')}
+      style={{
+        padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+        background: '#fff', color: '#8B5CF6', fontWeight: 800, boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+      }}
+    >
+      Language: {lang === 'en' ? '🇬🇧 English' : '🇵🇰 اردو'}
+    </button>
+  </div>
+      {/* ── Chat Window ── */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 20 }}>
         {messages.map(msg => (
-          <motion.div key={msg.id} initial={{ opacity: 0, y: 15, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            style={{ display: 'flex', justifyContent: msg.role === 'bot' ? 'flex-start' : 'flex-end', gap: 10, alignItems: 'flex-end' }}>
+          <motion.div key={msg.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', justifyContent: msg.role === 'bot' ? 'flex-start' : 'flex-end', gap: 10, alignItems: 'flex-end' }}>
             
-            {/* Bot Avatar */}
             {msg.role === 'bot' && (
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                  <DynamicIcon name={data.botAvatar} size={18} color="#1E3A8A" />
               </div>
             )}
             
-            {/* Message Bubble */}
             <div className="chat-bubble" style={{ 
-              maxWidth: '75%', 
-              padding: '14px 18px', 
-              borderRadius: msg.role === 'bot' ? '20px 20px 20px 4px' : '20px 20px 4px 20px', 
-              background: msg.role === 'bot' ? '#F3F4F6' : 'linear-gradient(90deg, #F9A8D4, #F472B6)', // Image specific user bubble color
-              color: msg.role === 'bot' ? '#1F2937' : '#ffffff', 
-              fontSize: 14, 
-              fontWeight: 700, 
-              lineHeight: 1.4, 
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              fontFamily: "'Nunito',sans-serif"
+              maxWidth: '75%', padding: '14px 18px', borderRadius: msg.role === 'bot' ? '20px 20px 20px 4px' : '20px 20px 4px 20px', 
+              background: msg.role === 'bot' ? '#F3F4F6' : 'linear-gradient(90deg, #F9A8D4, #F472B6)', color: msg.role === 'bot' ? '#1F2937' : '#ffffff', 
+              fontSize: 14, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: 10
             }}>
               {msg.text}
+              {/* Play Button for Voice Notes */}
+              {msg.audioUrl && (
+                <button onClick={() => playAudio(msg.audioUrl)} style={{ background: '#fff', border: 'none', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#A855F7' }}>
+                  <Play size={14} style={{ marginLeft: 2 }} />
+                </button>
+              )}
             </div>
 
-            {/* User Avatar */}
             {msg.role === 'user' && (
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FDA4AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#FDA4AF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                  <User size={18} color="#9F1239" />
               </div>
             )}
-
           </motion.div>
         ))}
         
-        {/* Typing Indicator */}
-        {typing && (
-          <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-               <DynamicIcon name={data.botAvatar} size={18} color="#1E3A8A" />
-            </div>
-            <div className="chat-bubble" style={{ background: '#F3F4F6', borderRadius: '20px 20px 20px 4px', padding: '16px 20px', display: 'flex', gap: 6, alignItems: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-              {[0, 1, 2].map(i => (
-                <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
-                  style={{ width: 6, height: 6, borderRadius: '50%', background: '#9CA3AF' }} />
-              ))}
+        {processing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+            <div className="chat-bubble" style={{ background: '#F3F4F6', borderRadius: '20px', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Loader2 size={16} className="spin-animation" color="#9CA3AF" /> <span style={{fontSize: 12, fontWeight: 700, color: '#6B7280'}}>Thinking...</span>
             </div>
           </motion.div>
         )}
         <div ref={bottomRef} style={{ height: 20 }} />
       </div>
 
-      {/* ── Hint Keywords (Floating below chat) ── */}
+      {/* ── Dynamic Input Bar ── */}
       {!done && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
-          {data.keywords.slice(0, 4).map(kw => (
-            <motion.span whileHover={{ scale: 1.05 }} key={kw} onClick={() => setInput(prev => prev + (prev ? ' ' : '') + kw)}
-              style={{ background: 'rgba(255,255,255,0.6)', color: '#4B5563', border: `1px solid rgba(255,255,255,0.8)`, borderRadius: 99, padding: '6px 14px', fontSize: 12, fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.03)', backdropFilter: 'blur(4px)' }}>
-              +{kw}
-            </motion.span>
-          ))}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          
+          {isVoiceMode ? (
+             // VOICE MODE UI: Big Record Button
+             <motion.button 
+               onMouseDown={startRecording} onMouseUp={stopRecording} onMouseLeave={stopRecording}
+               onTouchStart={startRecording} onTouchEnd={stopRecording}
+               whileTap={{ scale: 0.95 }}
+               style={{ width: '100%', padding: '16px', borderRadius: 30, background: recording ? '#EF4444' : '#A855F7', color: '#fff', border: 'none', fontSize: 16, fontWeight: 900, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, boxShadow: '0 8px 20px rgba(0,0,0,0.15)', touchAction: 'none' }}
+             >
+               {recording ? <><MicOff size={24} /> Release to Send</> : <><Mic size={24} /> Hold to Speak</>}
+             </motion.button>
+          ) : (
+            // TEXT MODE UI: Standard Input Field
+            <>
+              <input 
+                value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitText(input)}
+                placeholder="Type your answer here..."
+                style={{ flex: 1, padding: '16px 20px', background: '#E5E7EB', border: 'none', borderRadius: 30, fontSize: 14, fontWeight: 700, outline: 'none' }}
+              />
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => submitText(input)}
+                style={{ width: 52, height: 52, borderRadius: '50%', background: '#A855F7', border: 'none', display: 'flex', alignItems: 'center', justify: 'center', color: '#ffffff' }}>
+                <Send size={20} />
+              </motion.button>
+            </>
+          )}
+
         </div>
       )}
-
-      {/* ── Input Bar ── */}
-      {!done && (
-        <div className="input-container" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          
-          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input 
-              className="chat-input"
-              value={input} 
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && submit(input)}
-              placeholder={listening ? 'Listening...' : 'Type your Answer here...'}
-              style={{ 
-                width: '100%',
-                padding: '16px 20px', 
-                background: '#E5E7EB', // Gray background exactly like the image
-                border: listening ? '2px solid #8B5CF6' : '2px solid transparent', 
-                borderRadius: 30, // Heavily rounded
-                fontSize: 14, 
-                fontWeight: 700,
-                outline: 'none', 
-                fontFamily: "'Nunito',sans-serif", 
-                color: '#1F2937',
-                boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.05)',
-                transition: 'all 0.3s'
-              }}
-            />
-            {/* Mic Toggle inside the input field */}
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={toggleVoice}
-              style={{ position: 'absolute', right: 12, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: listening ? '#EF4444' : '#9CA3AF' }}>
-              {listening ? <MicOff size={22} /> : <Mic size={22} />}
-            </motion.button>
-          </div>
-          
-          {/* Circular Purple Send Button */}
-          <motion.button className="send-btn" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => submit(input)}
-            style={{ 
-              width: 52, 
-              height: 52, 
-              borderRadius: '50%', 
-              background: '#A855F7', // Purple/Magenta
-              border: 'none', 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justify: 'center', 
-              color: '#ffffff', 
-              boxShadow: '0 4px 12px rgba(168,85,247,0.3)',
-              flexShrink: 0
-            }}>
-            <Send size={20} style={{ marginLeft: -2, marginTop: 2 }} />
-          </motion.button>
-        </div>
-      )}
-
     </div>
   )
 }
