@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # 1. Main Express Backend
+  express_backend:
+    build:
+      context: ../                  # Ek folder peechay (main backend folder)
+      dockerfile: ./Docker/Dockerfile.express
+    ports:
+      - "5000:5000"
+    env_file:
+      - ../.env                     # Picks up backend/.env securely
+    volumes:
+      - ../:/usr/src/app                 # VS Code ka live code container mein sync karega
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+
+  # 2. Data Pipeline (ML/AI)
+  ml_pipeline:
+    build:
+      context: ../../data-pipeline  # Main root se data-pipeline folder mein jayega
+      dockerfile: ../backend/Docker/Dockerfile.pipeline
+    env_file:
+      - ../../data-pipeline/.env
+    volumes:
+      - ../../data-pipeline:/app
+    command: tail -f /dev/null
+    restart: unless-stopped
+
+  # 3. Isolated Code Sandbox
+  python_sandbox:
+    build:
+      context: ../../sandbox        # Agar sandbox ka code alag folder mein hai
+      dockerfile: ../backend/Docker/Dockerfile.sandbox
+    volumes:
+      - ../../sandbox:/app
+    command: python -u execute.py
+    expose:
+      - "8000"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 128M
