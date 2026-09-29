@@ -1,6 +1,3 @@
-import fetch from 'node-fetch';
-globalThis.fetch = fetch;
-
 import 'dotenv/config'; 
 import { pipeline } from '@xenova/transformers';
 import { supabase } from '../config/supabase.js';
@@ -12,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import OpenAI from 'openai';
-import Jimp from 'jimp';
+import * as Jimp from 'jimp';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

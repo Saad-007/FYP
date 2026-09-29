@@ -106,8 +106,12 @@ app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`)
   console.log(`✅ Chat API: POST /api/chat`)
   console.log(`✅ Search API: POST /api/search`)
+  console.log(`✅ Workspace API: POST /api/workspace/execute`)
   console.log(`✅ Health: GET /api/health`)
-  console.log(`📚 GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '✅ SET' : '❌ MISSING'}`)
+  console.log(`--------------------------------`)
+  console.log(`🔑 API KEYS STATUS:`)
+  console.log(`📚 GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '✅ SET' : '❌ MISSING (RAG & Text Chat)'}`)
+  console.log(`🎙️ GROQ_API_KEY:   ${process.env.GROQ_API_KEY ? '✅ SET' : '❌ MISSING (Whisper Voice)'}`)
   console.log(`================================\n`)
 })
 
