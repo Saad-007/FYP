@@ -5,7 +5,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as googleTTS from 'google-tts-api';
 
 console.log("Checking API Key: ", process.env.GEMINI_API_KEY ? "✅ KEY MIL GAYI!" : "❌ KEY MISSING HAI!");
-// 1. Gemini AI Initialize kar rahe hain (Ab isko .env se key mil jayegi)
+
+// 1. Gemini AI Initialize kar rahe hain
 const cleanApiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : "";
 const genAI = new GoogleGenerativeAI(cleanApiKey);
 
@@ -45,12 +46,8 @@ export const searchSimilarDocuments = async (query) => {
   // 3. Data ko text mein convert karein
   const contextText = data.map(doc => doc.content).join("\n\n");
   
-  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" }); // 👈 Yahan update karein
-
-
-  // 4. Gemini model load karein (1.5-flash use kar rahe hain for stability)
-  // 4. Gemini model load karein
-  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" }); // 👈 Yahan update karein
+  // 4. Gemini model load karein (Ek hi dafa declare kiya hai ab)
+  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
   
   const prompt = `
   You are an intelligent and professional AI tutor for EduAIQuest. 
@@ -76,18 +73,16 @@ export const searchSimilarDocuments = async (query) => {
 
 export const evaluateDrawingImage = async (imageBase64, expectedCategory) => {
   try {
-    // 1. Base64 string ko saaf karein (React 'data:image/png;base64,' lagata hai, humein sirf data chahiye)
+    // 1. Base64 string ko saaf karein
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
-    // 2. Gemini Model load karein (JSON response force karne ki configuration ke sath)
-// 2. Gemini Model load karein (JSON response force karne ki configuration ke sath)
+    // 2. Gemini Model load karein
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash", // 👈 Aur yahan bhi update karein
+      model: "gemini-3.6-flash", 
       generationConfig: { responseMimeType: "application/json" } 
     });
-  
 
-    // 3. Prompt setup (Strict instructions for JSON and kid-friendly tone)
+    // 3. Prompt setup
     const prompt = `
     You are a friendly, enthusiastic AI teacher playing a drawing game with a kid.
     The kid was challenged to draw a: "${expectedCategory}".
@@ -124,9 +119,10 @@ export const evaluateDrawingImage = async (imageBase64, expectedCategory) => {
     throw new Error("AI drawing check fail ho gaya.");
   }
 };
+
 export const chatWithStoryBot = async (userText, chatHistory, botName, scenario) => {
   try {
-    // 1. Purani chat history ko text mein convert karein taake AI ko context milay
+    // 1. Purani chat history ko text mein convert karein
     const historyString = chatHistory.map(m => `${m.role === 'bot' ? botName : 'Kid'}: ${m.text}`).join('\n');
 
     // 2. AI ke liye Prompt banayen
@@ -143,7 +139,7 @@ export const chatWithStoryBot = async (userText, chatHistory, botName, scenario)
     Do not use JSON, just return plain conversational text.
     `;
 
-    // 3. Gemini 3.6-flash Model load karein
+    // 3. Gemini Model load karein
     const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
     
     console.log(`💬 Chatting with AI (${botName})...`);
@@ -156,6 +152,7 @@ export const chatWithStoryBot = async (userText, chatHistory, botName, scenario)
     throw new Error("Chat generate karne mein masla aaya.");
   }
 };
+
 export const processVoiceChat = async (audioBuffer, chatHistory, botName, scenario, language = 'en') => {
   try {
     const audioBase64 = audioBuffer.toString("base64");
@@ -184,7 +181,7 @@ export const processVoiceChat = async (audioBuffer, chatHistory, botName, scenar
     const aiResult = await model.generateContent([prompt, audioPart]);
     const replyText = aiResult.response.text().replace(/\*/g, '');
 
-    // 🔊 TTS mein exact language code pass karein ('en' ya 'ur')
+    // 🔊 TTS mein exact language code pass karein
     console.log(`🔊 Google TTS: Text ko awaz mein badal raha hoon (${language})...`);
     const responseAudioBase64 = await googleTTS.getAudioBase64(replyText, {
       lang: language, 
@@ -199,3 +196,4 @@ export const processVoiceChat = async (audioBuffer, chatHistory, botName, scenar
     throw new Error("Voice process fail ho gaya.");
   }
 };
+
