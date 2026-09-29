@@ -109,10 +109,7 @@ app.listen(PORT, () => {
   console.log(`📚 GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '✅ SET' : '❌ MISSING'}`)
   console.log(`================================\n`)
 })
-import express from 'express';
-import cors from 'cors';
-import multer from 'multer'
-import 'dotenv/config';
+
 import searchRoutes from './routes/searchRoutes.js';
 import { evaluateDrawingImage,chatWithStoryBot,processVoiceChat } from './services/aiService.js';
 
