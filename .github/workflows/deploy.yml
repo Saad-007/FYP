@@ -20,7 +20,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           source: "."
-          target: "/home/ubuntu/fyp-project"
+          target: "/home/ubuntu/fyp-backend"
 
       - name: Run Docker Compose on EC2
         uses: appleboy/ssh-action@v0.1.6
@@ -30,8 +30,7 @@ jobs:
           key: ${{ secrets.AWS_PRIVATE_KEY }}
           script: |
             # Folder mein jana
-            cd /home/ubuntu/fyp-project/fyp/fyp/backend/Docker
-            
+            cd /home/ubuntu/fyp-backend/fyp/fyp/backend/Docker  
             # Puraane containers band karna
             sudo docker-compose down
             
