@@ -19,6 +19,7 @@ function useBreakpoint() {
 }
 
 export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace, onOpenTheory }) {
+export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace }) {
   const { C } = useTheme()
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
   const modules = MODULES_DATA[track.id] || MODULES_DATA.data_scientist
@@ -30,6 +31,7 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
 
   return (
     <div style={{ maxWidth: 1160, margin: '0 auto' }}>
+      {/* Heading */}
       <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: C.text, letterSpacing: '-0.03em', marginBottom: 3 }}>
           Welcome back, {profile?.username || 'Developer'}
@@ -39,6 +41,7 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
         </p>
       </div>
 
+      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: statCols, gap: 10, marginBottom: 20 }}>
         <StatCard label="Total XP"      value={xp.toLocaleString()}         sub="Top 12% globally"         Icon={Zap}          accent={C.amber}  delay={0}    />
         <StatCard label="Level"         value={`Lvl ${level}`}              sub="Data Scientist"            Icon={Star}         accent={C.accent} delay={0.05} />
@@ -48,6 +51,13 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
 
       <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Main grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
+
+        {/* LEFT */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Active module hero */}
           {active && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               style={{ background: C.raised, border: `1px solid ${C.borderL}`, borderRadius: 14, padding: isMobile ? '16px' : '20px 22px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, flexDirection: isMobile ? 'column' : 'row' }}
@@ -67,10 +77,15 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
                 style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
               >
                 <Play size={13} fill={C.bg} /> {active.type === 'theory' ? 'Start Theory' : 'Start Coding'}
+              <button onClick={onOpenWorkspace}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
+              >
+                <Play size={13} fill={C.bg} /> Start Now
               </button>
             </motion.div>
           )}
 
+          {/* Module list */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
             <div style={{ padding: '13px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', gap: 8 }}>
               <div>
@@ -92,6 +107,7 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
                   onStartTheory={() => onOpenTheory(m)} 
                 />
               ))}
+              {modules.map((m, i) => <ModuleRow key={m.id} mod={m} index={i} onStart={onOpenWorkspace} />)}
             </div>
           </div>
 
@@ -135,6 +151,9 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
 
         {/* RIGHT */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* RIGHT — hidden on mobile/tablet (shown below) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
           {/* Skill radar */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: '16px' }}>
             <SectionHeader title="Skill Proficiency" sub="Refreshed after each module" />
@@ -206,4 +225,5 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
       </div>
     </div>
   )
+}
 }

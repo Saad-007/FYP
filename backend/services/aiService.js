@@ -47,6 +47,10 @@ export const searchSimilarDocuments = async (query) => {
   
   const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" }); // 👈 Yahan update karein
 
+
+  // 4. Gemini model load karein (1.5-flash use kar rahe hain for stability)
+  // 4. Gemini model load karein
+  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" }); // 👈 Yahan update karein
   
   const prompt = `
   You are an intelligent and professional AI tutor for EduAIQuest. 

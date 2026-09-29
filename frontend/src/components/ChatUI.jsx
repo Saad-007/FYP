@@ -4,6 +4,19 @@ import { Bot, Send, Sparkles, User } from "lucide-react"
 import { useTheme } from "../pages/pro/data/ThemeContext"
 
 const BACKEND_URL = 'http://localhost:5000'
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bot, Send, Sparkles, User } from "lucide-react";
+import { useTheme } from "../pages/pro/data/ThemeContext";
+
+// Mock bot replies - baad me Saad ki real API se replace karna
+const MOCK_REPLIES = [
+  "Great question! Let's break that down step by step.",
+  "AI literacy basically means understanding how AI tools work and their limits.",
+  "Try asking me about prompt engineering or how neural networks learn!",
+  "That's an interesting topic. Here's a simple way to think about it...",
+  "I'm just a mock reply for now, but soon Saad's backend will power me.",
+];
 
 const SUGGESTIONS = [
   "What is prompt engineering?",
@@ -17,6 +30,18 @@ function timeNow() {
 
 export default function ChatUI() {
   const { C, isDark } = useTheme()
+];
+
+function getMockReply() {
+  return MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
+}
+
+function timeNow() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+export default function ChatUI() {
+  const { C, isDark } = useTheme();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -103,6 +128,40 @@ export default function ChatUI() {
       send()
     }
   }
+  ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isTyping]);
+
+  const send = (text) => {
+    const value = text ?? input;
+    if (!value.trim()) return;
+
+    const userMsg = { id: Date.now(), sender: "user", text: value, time: timeNow() };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setIsTyping(true);
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, sender: "bot", text: getMockReply(), time: timeNow() },
+      ]);
+      setIsTyping(false);
+    }, 900 + Math.random() * 900);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  };
 
   return (
     <div
@@ -168,6 +227,7 @@ export default function ChatUI() {
           <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, display: "inline-block" }} />
             Live RAG powered
+            Mock mode &middot; replies simulated
           </div>
         </div>
       </div>
@@ -230,6 +290,9 @@ export default function ChatUI() {
                     background: msg.isError ? '#EF444420' : (msg.sender === "user" ? C.accent : C.raised),
                     color: msg.isError ? '#EF4444' : (msg.sender === "user" ? "#fff" : C.text),
                     border: msg.sender === "user" ? "none" : (msg.isError ? `1px solid #EF4444` : `1px solid ${C.border}`),
+                    background: msg.sender === "user" ? C.accent : C.raised,
+                    color: msg.sender === "user" ? "#fff" : C.text,
+                    border: msg.sender === "user" ? "none" : `1px solid ${C.border}`,
                   }}
                 >
                   {msg.text}
@@ -344,6 +407,9 @@ export default function ChatUI() {
             borderRadius: 12, padding: "11px 14px", fontSize: 13.5, outline: "none", fontFamily: "inherit",
             opacity: isTyping ? 0.6 : 1,
             cursor: isTyping ? 'not-allowed' : 'text'
+          style={{
+            flex: 1, background: C.surface, color: C.text, border: `1px solid ${C.border}`,
+            borderRadius: 12, padding: "11px 14px", fontSize: 13.5, outline: "none", fontFamily: "inherit",
           }}
         />
         <motion.button
@@ -357,6 +423,12 @@ export default function ChatUI() {
             cursor: (input.trim() && !isTyping) ? "pointer" : "default", 
             transition: "background 0.15s",
             opacity: isTyping ? 0.6 : 1
+          disabled={!input.trim()}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 42, height: 42, borderRadius: 12, border: "none", flexShrink: 0,
+            background: input.trim() ? C.accent : C.border,
+            cursor: input.trim() ? "pointer" : "default", transition: "background 0.15s",
           }}
         >
           <Send size={16} color="#fff" strokeWidth={2.4} />
@@ -364,4 +436,6 @@ export default function ChatUI() {
       </div>
     </div>
   )
+}
+  );
 }
