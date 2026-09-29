@@ -40,12 +40,14 @@ function Shell({ profile }) {
   const [view, setView]               = useState('overview')
   const [workspaceZone, setWorkspaceZone] = useState(null) // NAYA: Boolean ki jagah zoneId store karega
   const [theoryZone, setTheoryZone]       = useState(null) // NAYA: RAG Modal ke liye zone object
+  const [workspaceOpen, setWorkspace] = useState(false)
   const [track, setTrack]             = useState(CAREER_TRACKS[0])
   const [trackOpen, setTrackOpen]     = useState(false)
   const [collapsed, setCollapsed]     = useState(false)
   const [mobileMenuOpen, setMobileMenu] = useState(false)
 
   const handleNav = id => {
+    if (id === 'workspace') { setWorkspace(true); return }
     setView(id)
   }
 
@@ -67,6 +69,7 @@ function Shell({ profile }) {
         button, input, textarea, select { font-family: inherit; }
       `}</style>
 
+      {/* Desktop sidebar */}
       {!isMobile && (
         <Sidebar
           activeView={view} onNav={handleNav}
@@ -75,6 +78,7 @@ function Shell({ profile }) {
         />
       )}
 
+      {/* Mobile overlay sidebar */}
       {isMobile && (
         <Sidebar
           activeView={view} onNav={handleNav}
@@ -85,6 +89,7 @@ function Shell({ profile }) {
         />
       )}
 
+      {/* Main column */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <Topbar
           track={track} trackOpen={trackOpen} setTrackOpen={setTrackOpen}
@@ -106,6 +111,8 @@ function Shell({ profile }) {
               {/* NAYA: onOpenWorkspace aur onOpenTheory pass kiya */}
               {view === 'overview'     && <Overview track={track} profile={profile} xp={XP} streak={STREAK} level={LEVEL} onOpenWorkspace={(id) => setWorkspaceZone(id)} onOpenTheory={(zone) => setTheoryZone(zone)} />}
               {view === 'learning'     && <LearningPath track={track} onOpenWorkspace={(id) => setWorkspaceZone(id)} onOpenTheory={(zone) => setTheoryZone(zone)} />}
+              {view === 'overview'     && <Overview track={track} profile={profile} xp={XP} streak={STREAK} level={LEVEL} onOpenWorkspace={() => setWorkspace(true)} />}
+              {view === 'learning'     && <LearningPath track={track} onOpenWorkspace={() => setWorkspace(true)} />}
               {view === 'analytics'    && <Analytics />}
               {view === 'achievements' && <Achievements />}
               {view === 'chat'         && <ChatUI />}
@@ -143,6 +150,8 @@ function Shell({ profile }) {
             }} 
           />
         )}
+      <AnimatePresence>
+        {workspaceOpen && <AIWorkspace onClose={() => setWorkspace(false)} />}
       </AnimatePresence>
     </div>
   )
@@ -178,4 +187,6 @@ export default function ProDashboard() {
       <Shell profile={profile} />
     </ThemeProvider>
   )
+}
+
 }
