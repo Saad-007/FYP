@@ -1,0 +1,39 @@
+name: Deploy Backend to AWS EC2
+
+on:
+  push:
+    branches:
+      - master  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Copy files to AWS EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          source: "."
+          target: "/home/ubuntu/fyp-project"
+
+      - name: Run Docker Compose on EC2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          script: |
+            # Folder mein jana
+            cd /home/ubuntu/fyp-project/fyp/fyp/backend/Docker
+            
+            # Puraane containers band karna
+            sudo docker-compose down
+            
+            # Naye code ke sath containers dobara chalana
+            sudo docker-compose up -d --build
