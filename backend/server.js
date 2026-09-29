@@ -110,7 +110,6 @@ app.listen(PORT, () => {
   console.log(`================================\n`)
 })
 
-import searchRoutes from './routes/searchRoutes.js';
 import { evaluateDrawingImage,chatWithStoryBot,processVoiceChat } from './services/aiService.js';
 
 const app = express();
