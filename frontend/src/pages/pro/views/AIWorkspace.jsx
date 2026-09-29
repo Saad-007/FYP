@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "http://16.170.117.27:5000";
 
 // ─── IDE COLOUR PALETTE ────────────────────────────────────────────────────
 const IDE = {
@@ -814,7 +814,7 @@ for i in range(3):
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/workspace/execute",
+        "http://16.170.117.27:5000/api/workspace/execute",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -38,7 +38,7 @@ export default function StoryTask({ zone, data, onComplete }) {
     setProcessing(true)
     
     try {
-      const response = await fetch('http://localhost:5000/api/story-chat', {
+      const response = await fetch('http://16.170.117.27:5000/api/story-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +109,7 @@ export default function StoryTask({ zone, data, onComplete }) {
     formData.append('chatHistory', JSON.stringify(history))
 
     try {
-      const response = await fetch('http://localhost:5000/api/story-voice', {
+      const response = await fetch('http://16.170.117.27:5000/api/story-voice', {
         method: 'POST',
         body: formData
       })

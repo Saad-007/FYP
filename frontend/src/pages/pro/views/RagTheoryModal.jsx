@@ -18,7 +18,7 @@ export default function RagTheoryModal({ zone, onClose, onComplete }) {
 
     try {
       // Connects to your existing chatRoutes.js
-      const response = await fetch('http://localhost:5000/api/chat', {
+      const response = await fetch('http://16.170.117.27:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg, zoneId: zone.id })

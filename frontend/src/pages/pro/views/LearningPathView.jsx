@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ChevronRight, BookOpen, Clock, Users } from 'lucide-react'
 
-const BACKEND_URL = 'http://localhost:5000'
+const BACKEND_URL = 'http://16.170.117.27:5000'
 
 export default function LearningPathView({ data, loading, error, C }) {
   if (error) return <div style={{ padding: '24px', background: `${C.red}15`, border: `1px solid ${C.red}40`, borderRadius: '12px', color: C.red, fontSize: '14px', fontWeight: 700 }}>Error: {error}</div>

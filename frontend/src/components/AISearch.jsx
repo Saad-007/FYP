@@ -15,7 +15,7 @@ export default function AISearch() {
     setResultData(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/search', {
+      const response = await fetch('http://16.170.117.27:5000/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),

@@ -166,7 +166,7 @@ export default function VisualTask({ zone, onComplete }) {
 
     try {
       // ⚠️ IMPORTANT: Agar aapka Node server kisi aur port par hai (e.g., 8000), toh URL update kar lena!
-      const response = await fetch('http://localhost:5000/api/evaluate-drawing', {
+      const response = await fetch('http://16.170.117.27:5000/api/evaluate-drawing', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

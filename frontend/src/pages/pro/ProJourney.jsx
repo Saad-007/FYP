@@ -49,7 +49,7 @@ export default function ProJourney({ userId, onOpenWorkspace }) {
 
   useEffect(() => {
     // Backend se actual progress load karna
-    fetch(`http://localhost:5000/api/workspace/progress/${userId}`)
+    fetch(`http://16.170.117.27:5000/api/workspace/progress/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
