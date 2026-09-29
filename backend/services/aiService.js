@@ -44,6 +44,9 @@ export const searchSimilarDocuments = async (query) => {
 
   // 3. Data ko text mein convert karein
   const contextText = data.map(doc => doc.content).join("\n\n");
+  
+  const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" }); // 👈 Yahan update karein
+
 
   // 4. Gemini model load karein (1.5-flash use kar rahe hain for stability)
   // 4. Gemini model load karein

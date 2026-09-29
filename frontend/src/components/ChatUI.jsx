@@ -1,3 +1,9 @@
+import { useState, useRef, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Bot, Send, Sparkles, User } from "lucide-react"
+import { useTheme } from "../pages/pro/data/ThemeContext"
+
+const BACKEND_URL = 'http://localhost:5000'
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Send, Sparkles, User } from "lucide-react";
@@ -16,6 +22,14 @@ const SUGGESTIONS = [
   "What is prompt engineering?",
   "How do neural networks learn?",
   "Explain AI bias simply",
+]
+
+function timeNow() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+export default function ChatUI() {
+  const { C, isDark } = useTheme()
 ];
 
 function getMockReply() {
@@ -35,6 +49,85 @@ export default function ChatUI() {
       text: "Hi! I'm your AI literacy assistant. Ask me anything about AI concepts, tools, or how things work under the hood.",
       time: timeNow(),
     },
+  ])
+  const [input, setInput] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const [error, setError] = useState(null)
+  const scrollRef = useRef(null)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+  }, [messages, isTyping])
+
+  const send = async (text) => {
+    const value = text ?? input
+    if (!value.trim()) return
+
+    setError(null)
+
+    // Add user message
+    const userMsg = { 
+      id: Date.now(), 
+      sender: "user", 
+      text: value, 
+      time: timeNow() 
+    }
+    setMessages((prev) => [...prev, userMsg])
+    setInput("")
+    setIsTyping(true)
+
+    try {
+      // Call backend API
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: value })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Add bot response
+        setMessages((prev) => [
+          ...prev,
+          { 
+            id: Date.now() + 1, 
+            sender: "bot", 
+            text: result.data.reply, 
+            time: timeNow(),
+            sources: result.data.sources
+          }
+        ])
+      } else {
+        throw new Error(result.error || 'Chat failed')
+      }
+    } catch (err) {
+      console.error('Chat Error:', err)
+      setError(err.message)
+      
+      // Add error message
+      setMessages((prev) => [
+        ...prev,
+        { 
+          id: Date.now() + 1, 
+          sender: "bot", 
+          text: `❌ Error: ${err.message}. Please try again.`, 
+          time: timeNow(),
+          isError: true
+        }
+      ])
+    } finally {
+      setIsTyping(false)
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      send()
+    }
+  }
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -133,6 +226,7 @@ export default function ChatUI() {
           </div>
           <div style={{ fontSize: 11.5, color: C.muted, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, display: "inline-block" }} />
+            Live RAG powered
             Mock mode &middot; replies simulated
           </div>
         </div>
@@ -193,6 +287,9 @@ export default function ChatUI() {
                     fontSize: 14,
                     lineHeight: 1.55,
                     fontWeight: 500,
+                    background: msg.isError ? '#EF444420' : (msg.sender === "user" ? C.accent : C.raised),
+                    color: msg.isError ? '#EF4444' : (msg.sender === "user" ? "#fff" : C.text),
+                    border: msg.sender === "user" ? "none" : (msg.isError ? `1px solid #EF4444` : `1px solid ${C.border}`),
                     background: msg.sender === "user" ? C.accent : C.raised,
                     color: msg.sender === "user" ? "#fff" : C.text,
                     border: msg.sender === "user" ? "none" : `1px solid ${C.border}`,
@@ -211,6 +308,13 @@ export default function ChatUI() {
                 >
                   {msg.time}
                 </span>
+                
+                {/* Show sources if available */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div style={{ fontSize: 10, color: C.muted, marginTop: 4, padding: '6px 8px', background: C.bg, borderRadius: 6 }}>
+                    📚 {msg.sources.length} source(s) found
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
@@ -263,6 +367,26 @@ export default function ChatUI() {
         </div>
       )}
 
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            padding: "10px 16px",
+            background: '#EF444415',
+            border: `1px solid #EF444440`,
+            color: '#EF4444',
+            fontSize: 12,
+            fontWeight: 600,
+            borderRadius: 8,
+            margin: '8px 16px',
+          }}
+        >
+          ❌ {error}
+        </motion.div>
+      )}
+
       {/* Input */}
       <div
         className="chatui-footer"
@@ -277,6 +401,12 @@ export default function ChatUI() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask about AI concepts..."
+          disabled={isTyping}
+          style={{
+            flex: 1, background: C.surface, color: C.text, border: `1px solid ${C.border}`,
+            borderRadius: 12, padding: "11px 14px", fontSize: 13.5, outline: "none", fontFamily: "inherit",
+            opacity: isTyping ? 0.6 : 1,
+            cursor: isTyping ? 'not-allowed' : 'text'
           style={{
             flex: 1, background: C.surface, color: C.text, border: `1px solid ${C.border}`,
             borderRadius: 12, padding: "11px 14px", fontSize: 13.5, outline: "none", fontFamily: "inherit",
@@ -285,6 +415,14 @@ export default function ChatUI() {
         <motion.button
           whileTap={{ scale: 0.94 }}
           onClick={() => send()}
+          disabled={!input.trim() || isTyping}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 42, height: 42, borderRadius: 12, border: "none", flexShrink: 0,
+            background: (input.trim() && !isTyping) ? C.accent : C.border,
+            cursor: (input.trim() && !isTyping) ? "pointer" : "default", 
+            transition: "background 0.15s",
+            opacity: isTyping ? 0.6 : 1
           disabled={!input.trim()}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -297,5 +435,7 @@ export default function ChatUI() {
         </motion.button>
       </div>
     </div>
+  )
+}
   );
 }

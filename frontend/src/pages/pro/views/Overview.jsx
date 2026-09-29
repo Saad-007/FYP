@@ -18,6 +18,7 @@ function useBreakpoint() {
   return { isMobile: bp < 640, isTablet: bp >= 640 && bp < 1024, isDesktop: bp >= 1024 }
 }
 
+export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace, onOpenTheory }) {
 export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace }) {
   const { C } = useTheme()
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
@@ -48,6 +49,8 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
         <StatCard label="Streak"        value={`${streak}d`}               sub="Keep it going"             Icon={Flame}        accent={C.red}    delay={0.15} />
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Main grid */}
       <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
 
@@ -68,6 +71,12 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
                   <Badge label={TYPE_CFG[active.type].label} color={TYPE_CFG[active.type].color} bg={TYPE_CFG[active.type].bg} />
                 </div>
               </div>
+              
+              <button 
+                onClick={() => active.type === 'theory' ? onOpenTheory(active) : onOpenWorkspace(active.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
+              >
+                <Play size={13} fill={C.bg} /> {active.type === 'theory' ? 'Start Theory' : 'Start Coding'}
               <button onClick={onOpenWorkspace}
                 style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
               >
@@ -89,6 +98,15 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
               </div>
             </div>
             <div style={{ padding: '6px', maxHeight: isMobile ? 300 : 400, overflowY: 'auto' }}>
+              {modules.map((m, i) => (
+                <ModuleRow 
+                  key={m.id} 
+                  mod={m} 
+                  index={i} 
+                  onStartWorkspace={() => onOpenWorkspace(m.id)} 
+                  onStartTheory={() => onOpenTheory(m)} 
+                />
+              ))}
               {modules.map((m, i) => <ModuleRow key={m.id} mod={m} index={i} onStart={onOpenWorkspace} />)}
             </div>
           </div>
@@ -131,6 +149,8 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
           </div>
         </div>
 
+        {/* RIGHT */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* RIGHT — hidden on mobile/tablet (shown below) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -205,4 +225,5 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
       </div>
     </div>
   )
+}
 }

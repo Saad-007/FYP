@@ -4,5 +4,17 @@ Draw & Skretch Dataset.txt
 .env.*
 !.env.example
 
-backend/.env
+node_modules/
+venv/
+__pycache__/
+.env
+DataSet/
+*.csv
+
+data-pipeline/EduAIQuest_Drawings/
+*.png
+
+*.rar
+*.zip
+
 

@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { useAuthStore } from './store/authStore'
 
+
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'

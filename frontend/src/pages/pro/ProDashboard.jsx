@@ -12,6 +12,8 @@ import ChatUI from "../../components/ChatUI";
 import Overview     from './views/Overview'
 import LearningPath from './views/LearningPath'
 import AIWorkspace  from './views/AIWorkspace'
+import RagTheoryModal from './views/RagTheoryModal' // NAYA: Import RAG Modal
+
 import Analytics    from './views/Analytics'
 import Achievements from './views/Achievements'
 
@@ -28,6 +30,7 @@ function useWindowWidth() {
   }, [])
   return w
 }
+
 function Shell({ profile }) {
   const navigate = useNavigate()
   const { C, isDark } = useTheme()
@@ -35,6 +38,8 @@ function Shell({ profile }) {
   const isMobile = width < 768
 
   const [view, setView]               = useState('overview')
+  const [workspaceZone, setWorkspaceZone] = useState(null) // NAYA: Boolean ki jagah zoneId store karega
+  const [theoryZone, setTheoryZone]       = useState(null) // NAYA: RAG Modal ke liye zone object
   const [workspaceOpen, setWorkspace] = useState(false)
   const [track, setTrack]             = useState(CAREER_TRACKS[0])
   const [trackOpen, setTrackOpen]     = useState(false)
@@ -103,6 +108,9 @@ function Shell({ profile }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
             >
+              {/* NAYA: onOpenWorkspace aur onOpenTheory pass kiya */}
+              {view === 'overview'     && <Overview track={track} profile={profile} xp={XP} streak={STREAK} level={LEVEL} onOpenWorkspace={(id) => setWorkspaceZone(id)} onOpenTheory={(zone) => setTheoryZone(zone)} />}
+              {view === 'learning'     && <LearningPath track={track} onOpenWorkspace={(id) => setWorkspaceZone(id)} onOpenTheory={(zone) => setTheoryZone(zone)} />}
               {view === 'overview'     && <Overview track={track} profile={profile} xp={XP} streak={STREAK} level={LEVEL} onOpenWorkspace={() => setWorkspace(true)} />}
               {view === 'learning'     && <LearningPath track={track} onOpenWorkspace={() => setWorkspace(true)} />}
               {view === 'analytics'    && <Analytics />}
@@ -113,6 +121,35 @@ function Shell({ profile }) {
         </main>
       </div>
 
+      {/* NAYA: Modals ko conditionally render karna aur props pass karna */}
+<AnimatePresence>
+        {(workspaceZone || view === 'ai-workspace' || view === 'workspace') && (
+          <AIWorkspace 
+            onClose={() => {
+              setWorkspaceZone(null);
+              // Agar sidebar se khola tha, toh close hone par wapis overview par bhej dein
+              if (view === 'ai-workspace' || view === 'workspace') {
+                setView('overview');
+              }
+            }} 
+            // Agar direct sidebar se khola hai, toh zoneId 'free-sandbox' jayega
+            zoneId={workspaceZone || 'free-sandbox'} 
+            userId={profile?.id} 
+          />
+        )}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {theoryZone && (
+          <RagTheoryModal 
+            zone={theoryZone} 
+            onClose={() => setTheoryZone(null)} 
+            onComplete={(zoneId) => {
+              setTheoryZone(null); // Theory modal band karein
+              setWorkspaceZone(zoneId); // Direct code editor open kar dein
+            }} 
+          />
+        )}
       <AnimatePresence>
         {workspaceOpen && <AIWorkspace onClose={() => setWorkspace(false)} />}
       </AnimatePresence>
@@ -150,5 +187,6 @@ export default function ProDashboard() {
       <Shell profile={profile} />
     </ThemeProvider>
   )
+}
 
 }
