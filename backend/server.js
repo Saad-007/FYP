@@ -11,7 +11,7 @@ import workspaceRoutes from './routes/workspaceRoutes.js'
 // Import Controllers
 import { evaluateDrawingImage, chatWithStoryBot, processVoiceChat } from './services/aiService.js'
 
-const app = express()
+ const app = express()
 
 // Middlewares
 app.use(cors())
