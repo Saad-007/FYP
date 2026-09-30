@@ -19,7 +19,6 @@ function useBreakpoint() {
 }
 
 export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace, onOpenTheory }) {
-export default function Overview({ track, profile, xp, streak, level, onOpenWorkspace }) {
   const { C } = useTheme()
   const { isMobile, isTablet, isDesktop } = useBreakpoint()
   const modules = MODULES_DATA[track.id] || MODULES_DATA.data_scientist
@@ -49,8 +48,6 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
         <StatCard label="Streak"        value={`${streak}d`}               sub="Keep it going"             Icon={Flame}        accent={C.red}    delay={0.15} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Main grid */}
       <div style={{ display: 'grid', gridTemplateColumns: mainCols, gap: 16 }}>
 
@@ -77,17 +74,13 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
                 style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
               >
                 <Play size={13} fill={C.bg} /> {active.type === 'theory' ? 'Start Theory' : 'Start Coding'}
-              <button onClick={onOpenWorkspace}
-                style={{ display: 'flex', alignItems: 'center', gap: 7, background: C.text, color: C.bg, padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: isMobile ? 'stretch' : 'auto', justifyContent: 'center' }}
-              >
-                <Play size={13} fill={C.bg} /> Start Now
               </button>
             </motion.div>
           )}
 
           {/* Module list */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
-            <div style={{ padding: '13px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ padding: '13px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 1 }}>Learning Path</div>
                 <div style={{ fontSize: 11, color: C.muted }}>{done} done · {modules.length - done} remaining</div>
@@ -107,7 +100,6 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
                   onStartTheory={() => onOpenTheory(m)} 
                 />
               ))}
-              {modules.map((m, i) => <ModuleRow key={m.id} mod={m} index={i} onStart={onOpenWorkspace} />)}
             </div>
           </div>
 
@@ -150,8 +142,6 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
         </div>
 
         {/* RIGHT */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* RIGHT — hidden on mobile/tablet (shown below) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Skill radar */}
@@ -225,5 +215,4 @@ export default function Overview({ track, profile, xp, streak, level, onOpenWork
       </div>
     </div>
   )
-}
 }

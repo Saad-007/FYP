@@ -122,7 +122,7 @@ function Shell({ profile }) {
       </div>
 
       {/* NAYA: Modals ko conditionally render karna aur props pass karna */}
-<AnimatePresence>
+      <AnimatePresence>
         {(workspaceZone || view === 'ai-workspace' || view === 'workspace') && (
           <AIWorkspace 
             onClose={() => {
@@ -150,6 +150,8 @@ function Shell({ profile }) {
             }} 
           />
         )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {workspaceOpen && <AIWorkspace onClose={() => setWorkspace(false)} />}
       </AnimatePresence>
@@ -187,6 +189,4 @@ export default function ProDashboard() {
       <Shell profile={profile} />
     </ThemeProvider>
   )
-}
-
 }

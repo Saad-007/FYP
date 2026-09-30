@@ -108,9 +108,7 @@ export const Spinner = ({ size = 22 }) => {
 }
 
 // ─── MODULE ROW ───────────────────────────────────────────────────────────────
-// ─── MODULE ROW ───────────────────────────────────────────────────────────────
 export const ModuleRow = ({ mod, index, onStartWorkspace, onStartTheory }) => {
-export const ModuleRow = ({ mod, index, onStart }) => {
   const { C } = useTheme()
   const cfg      = TYPE_CFG[mod.type]
   const isDone   = mod.status === 'done'
@@ -118,7 +116,7 @@ export const ModuleRow = ({ mod, index, onStart }) => {
   const isLocked = mod.status === 'locked'
   const [hov, setHov] = useState(false)
 
-  // NAYA: Handle click based on module type
+  // Handle click based on module type
   const handleClick = () => {
     if (isLocked) return;
     if (mod.type === 'theory') {
@@ -135,8 +133,7 @@ export const ModuleRow = ({ mod, index, onStart }) => {
       transition={{ delay: index * 0.03, duration: 0.22 }}
       onMouseEnter={() => !isLocked && setHov(true)}
       onMouseLeave={() => setHov(false)}
-      onClick={handleClick} // NAYA: Call updated click handler
-      onClick={() => !isLocked && onStart(mod)}
+      onClick={handleClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 12px',
