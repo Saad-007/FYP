@@ -72,7 +72,6 @@ export default function AISearch() {
         </div>
       )}
 
-      {/* Sources Section */}
       {resultData && resultData.sources && resultData.sources.length > 0 && (
         <div>
           <h4 className="font-semibold text-gray-600 mb-3 text-sm uppercase tracking-wider">Sources</h4>
