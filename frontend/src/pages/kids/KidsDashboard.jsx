@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase'
 
 // 🛡️ CRASH-PROOF ICON IMPORTS
 import * as Icons from 'lucide-react'
-import AIMascot from '../../components/kids/Shared/AIMascot'
+import AIMascot from '../../components/kids/TempFolder/AIMascot'
 import LivingMapBackground, { EnergyPulse, XPPopup } from '../../components/kids/Dashboard/LivingMapBackground'
 import KidsShop from '../../components/kids/Dashboard/KidsShop'
 import { ZONES_LIST, TASK_TYPES, ZONE_XP, XP_PER_LEVEL, zoneComplete, zoneUnlocked } from '../../data/kids/zoneData'
