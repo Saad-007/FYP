@@ -19,10 +19,10 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "google-tts-api": "^2.0.2",
-    "jimp": "^1.6.1",
-    "multer": "^2.4.0",
-    "node-fetch": "^3.3.2",
-    "openai": "^7.24.0",
+    "jimp": "^0.22.10",
+    "multer": "^2.3.0",
+    "node-fetch": "^2.7.0",
+    "openai": "^7.20.0",
     "pdfreader": "^3.0.8"
   }
 }

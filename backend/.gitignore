@@ -1,0 +1,6 @@
+node_modules/
+hf_data_cache/
+.env
+X_training_data_FYP.npy
+Y_training_labels_FYP.npy
+DataSet/
