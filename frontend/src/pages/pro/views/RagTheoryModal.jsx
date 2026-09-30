@@ -17,8 +17,8 @@ export default function RagTheoryModal({ zone, onClose, onComplete }) {
     setLoading(true);
 
     try {
-      // Connects to your existing chatRoutes.js
-      const response = await fetch('http://16.170.117.27:5000/api/chat', {
+      // ✅ YAHAN CHANGE KIYA HAI: Hardcoded IP hata kar Environment Variable laga diya
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg, zoneId: zone.id })

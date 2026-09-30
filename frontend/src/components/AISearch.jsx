@@ -15,7 +15,8 @@ export default function AISearch() {
     setResultData(null);
 
     try {
-      const response = await fetch('http://16.170.117.27:5000/api/search', {
+      // ✅ YAHAN CHANGE KIYA HAI: Hardcoded IP hata kar Environment Variable laga diya
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),

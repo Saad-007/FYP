@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const BACKEND_URL = "http://16.170.117.27:5000";
+const BACKEND_URL = import.meta.env.VITE_API_URL
 
 // ─── IDE COLOUR PALETTE ────────────────────────────────────────────────────
 const IDE = {

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bot, Send, Sparkles, User } from "lucide-react";
 import { useTheme } from "../pages/pro/data/ThemeContext";
 
-const BACKEND_URL = 'http://16.170.117.27:5000';
+// ✅ YAHAN CHANGE KIYA HAI: Hardcoded IP hata kar Environment Variable laga diya
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const SUGGESTIONS = [
   "What is prompt engineering?",

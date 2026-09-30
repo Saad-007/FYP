@@ -48,8 +48,8 @@ export default function ProJourney({ userId, onOpenWorkspace }) {
   const [theoryCompletedZones, setTheoryCompletedZones] = useState([]); // Temporary unlock before code execution
 
   useEffect(() => {
-    // Backend se actual progress load karna
-    fetch(`http://16.170.117.27:5000/api/workspace/progress/${userId}`)
+    // ✅ YAHAN CHANGE KIYA HAI: Hardcoded IP hata kar Environment Variable laga diya
+    fetch(`${import.meta.env.VITE_API_URL}/api/workspace/progress/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -225,7 +225,7 @@ export default function ProJourney({ userId, onOpenWorkspace }) {
             </div>
           );
         })}
-           {activeTheoryZone && (
+        {activeTheoryZone && (
           <RagTheoryModal
             zone={activeTheoryZone}
             onClose={() => setActiveTheoryZone(null)}
