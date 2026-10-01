@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 
 // ... (GenAI aur Groq ka code yahan rakhne dein) ...
 const cleanApiKey = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : "";
-const genAI = new GoogleGenerativeAI(cleanApiKey)a;
+const genAI = new GoogleGenerativeAI(cleanApiKey);
 
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
