@@ -12,7 +12,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import OpenAI from 'openai';
-import * as Jimp from 'jimp';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const Jimp = require('jimp');
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
