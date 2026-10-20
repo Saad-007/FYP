@@ -255,56 +255,73 @@ export const chatWithStoryBot = async (userText, chatHistory, botName, scenario,
   }
 };
 
-export const processVoiceChat = async (audioBuffer, chatHistory, botName, scenario, language = 'en') => {
-  try {
-    // 1. Direct Buffer se File Object banayen (Hard disk par save karne ki zaroorat nahi!)
-    const audioFile = await toFile(audioBuffer, 'voice.webm', { type: 'audio/webm' });
 
-    // 🎙️ 2. WHISPER (Groq): Audio ko text mein convert karein
+export const processVoiceChat = async (
+  audioBuffer,
+  chatHistory,
+  botName,
+  scenario,
+  language = 'en'
+) => {
+  let tempFilePath;
+
+  try {
+    // 1. Audio buffer ko temporary file mein save karein (Whisper ko file chahiye hoti hai)
+    const tempFilePath = path.join(tmpdir(), `voice_${Date.now()}.webm`);
+    fs.writeFileSync(tempFilePath, audioBuffer);
+
     console.log(`🎙️ Whisper: Bachay ki awaz sun raha hoon (${language})...`);
-    
     const transcription = await groq.audio.transcriptions.create({
-      file: audioFile,
+      file: fs.createReadStream(tempFilePath),
       model: "whisper-large-v3",
       language: language === 'ur' ? 'ur' : 'en' 
     });
-    
     const userText = transcription.text;
+    
+    // Kaam hone ke baad temp file delete kar dein
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath); 
+
     console.log(`🗣️ Bachay ne kaha: "${userText}"`);
 
-    // 🧠 3. GEMINI: Text samajh kar jawab banaye
-    const historyString = chatHistory.map(m => `${m.role === 'bot' ? botName : 'Kid'}: ${m.text}`).join('\n');
-    const langInstruction = language === 'ur' 
-      ? "Reply strictly in native Urdu script (اردو). Apka lehja hosla afza aur dostana hona chahiye." 
-      : "Reply strictly in English.";
+    // 3. Prepare Gemini prompt
+    const safeHistory = Array.isArray(chatHistory) ? chatHistory : [];
+    const historyString = safeHistory
+      .map(m => `${m.role === 'bot' ? botName : 'Kid'}: ${m.text}`)
+      .join('\n');
+
+    const langInstruction = language === 'ur'
+      ? 'Reply strictly in native Urdu script (اردو). Lehja hosla afza aur dostana ho.'
+      : 'Reply strictly in English.';
 
     const prompt = `
-    You are ${botName}, a friendly and enthusiastic AI playing a chat game with a learner.
-    Scenario: ${scenario}
-    History so far:
-    ${historyString}
-    
-    The kid just said: "${userText}"
-    Reply naturally and enthusiastically in 1-2 very short sentences.
-    ${langInstruction}
-    `;
+You are ${botName}, a friendly and enthusiastic AI playing a chat game with a learner.
+Scenario: ${scenario}
+History so far:
+${historyString}
+
+The kid just said: "${userText}"
+Reply naturally and enthusiastically in 1-2 very short sentences.
+${langInstruction}
+`;
 
     console.log(`🧠 Gemini: ${botName} jawab soch raha hai...`);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
-    const aiResult = await model.generateContent(prompt);
-    const replyText = aiResult.response.text().replace(/\*/g, ''); 
 
-    // 🔊 4. GOOGLE TTS: Gemini ke text ko wapas MP3 mein badlein
+    const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
+    const aiResult = await model.generateContent(prompt);
+    const replyText = aiResult.response.text().replace(/\*/g, '');
+
+    // 4. Convert reply to speech
     console.log(`🔊 Google TTS: Text ko awaz mein badal raha hoon (${language})...`);
+
     const responseAudioBase64 = await googleTTS.getAudioBase64(replyText, {
-      lang: language, 
+      lang: language,
       slow: false,
-      host: 'https://translate.google.com',
+      host: 'https://translate.google.com'
     });
 
-    return { 
-      replyText: replyText, 
-      audioBase64: responseAudioBase64 
+    return {
+      replyText,
+      audioBase64: responseAudioBase64
     };
 
   } catch (error) {

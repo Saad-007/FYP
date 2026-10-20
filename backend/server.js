@@ -69,9 +69,23 @@ app.post('/api/story-voice', upload.single('audio'), async (req, res) => {
     const chatHistory = JSON.parse(req.body.chatHistory || '[]')
     const audioBuffer = req.file?.buffer
 
-    if (!audioBuffer) {
-      return res.status(400).json({ error: 'Audio file nahi mili!' })
-    }
+  if (!req.file || !audioBuffer || audioBuffer.length === 0) {
+  return res.status(400).json({ error: 'Audio file nahi mili ya empty hai!' })
+}
+
+  console.log('🎙️ Received audio:', {
+  originalname: req.file.originalname,
+  mimetype: req.file.mimetype,
+  sizeBytes: audioBuffer.length
+})
+
+// Tiny uploads ko transcription API par na bhejein.
+// 100 bytes sirf ek basic sanity check hai, duration guarantee nahi.
+  if (audioBuffer.length < 100) {
+   return res.status(400).json({
+  error: 'Audio bohat chhoti hai. Dobara record karein.'
+  })
+}
 
     const aiResponse = await processVoiceChat(audioBuffer, chatHistory, botName, scenario, language)
     res.status(200).json(aiResponse)
