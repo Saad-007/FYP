@@ -11,12 +11,9 @@ const DynamicIcon = ({ name, size = 20, color = 'currentColor', ...props }) => {
 
 // 🌟 DYNAMIC DRAWING CATEGORIES (For Drawing Mode — used when data.type === 'draw')
 const DRAWING_CATEGORIES = [
-  { id: 'airplane', name: 'Airplane', emoji: '✈️' },
-  { id: 'apple', name: 'Apple', emoji: '🍎' },
-  { id: 'cat', name: 'Cat', emoji: '🐱' },
-  { id: 'bus', name: 'Bus', emoji: '🚌' },
-  { id: 'zebra', name: 'Zebra', emoji: '🦓' },
-  { id: 'clock', name: 'Clock', emoji: '⏰' }
+  { id: 'circle', name: 'Circle', emoji: '⭕' },
+  { id: 'box', name: 'Box', emoji: '⬛' },
+
 ]
 
 const PALETTE_COLORS = ['#EF4444', '#A3E635', '#0EA5E9', '#10B981', '#D946EF', '#09090B', '#ffffff']
