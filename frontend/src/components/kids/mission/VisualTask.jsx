@@ -9,11 +9,10 @@ const DynamicIcon = ({ name, size = 20, color = 'currentColor', ...props }) => {
   return <IconComponent size={size} color={color} {...props} />
 }
 
-// 🌟 DYNAMIC DRAWING CATEGORIES (For Drawing Mode — used when data.type === 'draw')
+// 🌟 SIMPLIFIED DRAWING CATEGORIES (Optimized for CNN Detection Accuracy)
 const DRAWING_CATEGORIES = [
   { id: 'circle', name: 'Circle', emoji: '⭕' },
-  { id: 'box', name: 'Box', emoji: '⬛' },
-
+  { id: 'box', name: 'Box', emoji: '⬛' }
 ]
 
 const PALETTE_COLORS = ['#EF4444', '#A3E635', '#0EA5E9', '#10B981', '#D946EF', '#09090B', '#ffffff']
@@ -507,8 +506,8 @@ export default function VisualTask({ zone, data, onComplete }) {
         )}
       </div>
 
-      <div style={{ background: '#FFFBEB', padding: '10px 16px', borderRadius: 12, textAlign: 'center', marginBottom: 16, boxShadow: '0 4px 10px rgba(0,0,0,0.05)', color: errorMsg ? '#EF4444' : '#1A1A1A', fontWeight: 800, fontSize: 13, transition: 'color 0.3s' }}>
-        {errorMsg || data?.instruction || data?.hint || (taskMode === 'draw' ? `Hint: Try your best to draw the ${currentDrawTask?.name}! 🎨` : 'Complete the challenge!')}
+ <div style={{ background: '#FFFBEB', padding: '10px 16px', borderRadius: 12, textAlign: 'center', marginBottom: 16, boxShadow: '0 4px 10px rgba(0,0,0,0.05)', color: errorMsg ? '#EF4444' : '#1A1A1A', fontWeight: 800, fontSize: 13, transition: 'color 0.3s' }}>
+        {errorMsg || (taskMode === 'draw' ? `Hint: Try your best to draw the ${currentDrawTask?.name}! 🎨` : (data?.instruction || data?.hint || 'Complete the challenge!'))}
       </div>
 
       {/* Find mode has no manual check button — it completes on the last correct tap */}

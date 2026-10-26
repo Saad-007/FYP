@@ -59,12 +59,12 @@ export const ZONE_CURRICULUM = {
   // LEVEL 1: THE DIGITAL WORLD & AI BASICS
   // ══════════════════════════════════════════════════════════════════════
 
-  "zone-1": {
+ "zone-1": {
     label: 'Smart vs. Basic', color: '#3B82F6', glow: 'rgba(59,130,246,0.22)',
     visual: {
       type: 'draw',
-      title: 'Draw an Apple! 🍎',
-      instruction: 'Drag devices with a "Brain" to the Smart Bin!',
+      title: 'AI Shape Drawing 🎨', // Yahan pehle 'Draw an Apple! 🍎' tha
+      instruction: 'Use the canvas below to draw the shape requested by the AI!', // Yahan pehle drag/drop ki instruction thi
       bins: [
         { id: 'smart', label: 'SMART (AI) 🧠', activeBg: '#E0E7FF', borderColor: '#4F46E5' },
         { id: 'basic', label: 'BASIC 📻', activeBg: '#F3F4F6', borderColor: '#9CA3AF' }
